@@ -45,15 +45,11 @@
             <td>
               <div class="action-buttons">
                 <button class="btn btn-info" (click)="verDetalleYComentarios(ticket)">
-                  👁️ Ver / Comentar
+                   Ver 
                 </button>
+                
 
-                @if (!ticket.agenteAsignado) {
-                  <button class="btn btn-primary" (click)="asignarTicketA_Mi(ticket.idTicket)">
-                    🙋‍♂️ Asignármelo
-                  </button>
-                }
-
+                
                 <select class="select-estado" 
                         [value]="ticket.estado?.idEstado" 
                         (change)="cambiarEstado(ticket.idTicket, $event)">
