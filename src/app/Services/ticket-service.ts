@@ -18,6 +18,10 @@ export class TicketService {
     return this.http.get<Result<Ticket>>(this.apiEndpoint+'/tickets/getAll');
   }
 
+  getById(idTicket: number): Observable<Result<Ticket>>{
+    return this.http.get<Result<Ticket>>(this.apiEndpoint+'/tickets?idTicket='+ idTicket);
+  }
+
   addTicket(ticket: Ticket):  Observable<Result<Ticket>>{
     return this.http.post<Result<Ticket>>(this.apiEndpoint+'/tickets', ticket);
   }
