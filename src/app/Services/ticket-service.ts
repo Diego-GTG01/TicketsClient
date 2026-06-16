@@ -18,4 +18,8 @@ export class TicketService {
     return this.http.get<Result<Ticket>>(this.apiEndpoint+'/tickets/getAll');
   }
 
+  addTicket(ticket: Ticket):  Observable<Result<Ticket>>{
+    return this.http.post<Result<Ticket>>(this.apiEndpoint+'/tickets', ticket);
+  }
+
 }

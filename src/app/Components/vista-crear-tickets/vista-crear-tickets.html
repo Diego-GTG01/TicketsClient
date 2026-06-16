@@ -1,0 +1,49 @@
+<div class="contenedor">
+  <h2>Crear Ticket</h2>
+
+  <form [formGroup]="ticketForm" (ngSubmit)="crearTicket()">
+    <div class="campo">
+      <label>Título</label>
+
+      <input type="text" formControlName="titulo" />
+
+      <small *ngIf="ticketForm.get('titulo')?.invalid && ticketForm.get('titulo')?.touched">
+        El título es obligatorio
+      </small>
+    </div>
+
+    <div class="campo">
+      <label>Descripción</label>
+
+      <textarea rows="6" formControlName="descripcion"> </textarea>
+
+      <small
+        *ngIf="ticketForm.get('descripcion')?.invalid && ticketForm.get('descripcion')?.touched"
+      >
+        La descripción es obligatoria
+      </small>
+    </div>
+
+    <div class="campo" formGroupName="prioridad">
+      <label>Prioridad</label>
+
+      <select formControlName="idPrioridad">
+        <option value="" selected disabled>Seleccione una prioridad</option>
+        <option *ngFor="let prioridad of prioridades" [value]="prioridad.idPrioridad">
+          {{ prioridad.nombre }}
+        </option>
+      </select>
+
+      <small
+        *ngIf="
+          ticketForm.get('prioridad.idPrioridad')?.invalid &&
+          ticketForm.get('prioridad.idPrioridad')?.touched
+        "
+      >
+        La prioridad es obligatoria
+      </small>
+    </div>
+
+    <button type="submit" [disabled]="ticketForm.invalid">Crear Ticket</button>
+  </form>
+</div>
