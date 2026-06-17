@@ -14,7 +14,7 @@ export class ComentarioService {
   private http = inject(HttpClient);
 
   getComentarioByIdTicket(idTicket: number): Observable<Result<Comentario>>{
-    return this.http.get<Result<Comentario>>(this.apiUrl);
+    return this.http.get<Result<Comentario>>(this.apiUrl+'/Comentario?idTicket='+idTicket);
   }
 
 }

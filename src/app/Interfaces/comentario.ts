@@ -6,6 +6,6 @@ export interface Comentario {
     ticket: Ticket,
     usuario: Usuario,
     mensaje: string,
-    fecha: Date
+    Fecha: Date
     
 }

@@ -39,7 +39,6 @@
 
       <div class="campo">
         <label>Fecha Creación</label>
-        
         <span class="badge prioridad">
           {{ ticket.FechaCreacion }}
         </span>
@@ -47,7 +46,6 @@
 
       <div class="campo">
         <label>Última Actualización</label>
-        
         <span class="badge prioridad">
           {{ ticket.FechaActualizacion }}
         </span>
@@ -56,66 +54,60 @@
 
     <div class="descripcion">
       <label>Descripción</label>
-
       <div class="descripcion-box">
         {{ ticket.descripcion }}
       </div>
     </div>
   </section>
 
-  <!-- COMENTARIOS -->
   <section class="card">
     <div class="card-header">
       <h2>Comentarios</h2>
     </div>
 
-    <div class="comentario" *ngFor="let comentario of comentarios">
-      <div class="comentario-header">
-        <strong>{{ comentario.usuario }}</strong>
+    @for (comentario of comentarios; track comentario.idComentario) {
+      <div class="comentario">
+        <div class="comentario-header">
+          <strong>{{ comentario.usuario?.username || comentario.usuario }}</strong>
 
-        <span>
-          {{ comentario.fecha }}
-        </span>
+          <span>{{ comentario.Fecha | date: 'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        <p>{{ comentario.mensaje }}</p>
       </div>
-
-      <p>
-        {{ comentario.mensaje }}
-      </p>
-    </div>
-
-    <div *ngIf="comentarios.length === 0" class="sin-registros">
-      No existen comentarios para este ticket.
-    </div>
+    } @empty {
+      <div class="sin-registros">No existen comentarios para este ticket.</div>
+    }
   </section>
 
-  <!-- HISTORIAL -->
   <section class="card">
     <div class="card-header">
       <h2>Historial de Cambios</h2>
     </div>
 
-    <div class="historial-item" *ngFor="let cambio of historial">
-      <div class="timeline-dot"></div>
+    @for (cambio of historial; track cambio.idHistorial) {
+      <div class="historial-item">
+        <div class="timeline-dot"></div>
 
-      <div class="timeline-content">
-        <p>
-          <strong>{{ cambio.usuario }}</strong>
-          cambió el estado de
-          <span class="estado-anterior">
-            {{ cambio.estadoAnterior || 'N/A' }}
-          </span>
-          →
-          <span class="estado-actual">
-            {{ cambio.estadoActual }}
-          </span>
-        </p>
+        <div class="timeline-content">
+          <p>
+            <strong>{{ cambio.usuario.username }}</strong>
+            cambió el estado de
+            <span class="estado-anterior">
+              {{ cambio.estadoAnterior.nombre }}
+            </span>
+            →
+            <span class="estado-actual">
+              {{ cambio.estadoActual.nombre }}
+            </span>
+          </p>
 
-        <small>
-          {{ cambio.fechaActualizacion }}
-        </small>
+          <small>
+            {{ cambio.fechaActualizaciion | date: 'dd/MM/yyyy HH:mm' }}
+          </small>
+        </div>
       </div>
-    </div>
-
-    <div *ngIf="historial.length === 0" class="sin-registros">No hay movimientos registrados.</div>
+    } @empty {
+      <div class="sin-registros">No hay movimientos registrados.</div>
+    }
   </section>
 </div>
