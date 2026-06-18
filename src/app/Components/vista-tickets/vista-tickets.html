@@ -1,69 +1,123 @@
-<div class="container">
-  <h2>Listado de Tickets</h2>
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+    <h2 class="fw-bold text-secondary mb-0">
+      <i class="bi bi-ticket-perforated me-2 text-primary"></i>Listado de Tickets
+    </h2>
+    
+    <button class="btn btn-primary fw-semibold d-flex align-items-center gap-2 shadow-sm" (click)="irReporte()">
+      <i class="bi bi-plus-lg fs-5"></i>
+      <span>Levantar Reporte</span>
+    </button>
+  </div>
 
   @if (tickets.length === 0) {
-    <p>Cargando tickets o no hay registros disponibles...</p>
+    <div class="d-flex flex-column align-items-center my-5">
+      <div class="spinner-border text-primary mb-3" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="text-muted">Cargando tickets o no hay registros disponibles...</p>
+    </div>
   } @else {
-    <table class="ticket-table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Título</th>
-          <th>Prioridad</th>
-          <th>Estado</th>
-          <th>Solicitante</th>
-          <th>Asignado a</th>
-          <th>Creado el</th>    
-          <th>Última Actualización</th>
-          <th>Acciones</th> </tr>
-      </thead>
-      <tbody>
-        @for (ticket of tickets; track ticket.idTicket) {
+    <div class="table-responsive shadow-sm rounded border bg-white">
+      <table class="table table-hover align-middle mb-0 text-center">
+        <thead class="table-dark text-uppercase fs-7 small">
           <tr>
-            <td>#{{ ticket.idTicket }}</td>
-            <td>
-              <strong>{{ ticket.titulo }}</strong>
-              <small style="display: block; color: gray">{{ ticket.descripcion }}</small>
-            </td>
-            <td>
-              <span class="badge-prioridad">{{ ticket.prioridad?.nombre }}</span>
-            </td>
-            <td>
-              <span class="badge-estado">{{ ticket.estado?.nombre }}</span>
-            </td>
-            <td>{{ ticket.usuarioSolicitante?.username }}</td>
-            <td>
-              @if (ticket.agenteAsignado) {
-                {{ ticket.agenteAsignado.username }}
-              } @else {
-                <span class="text-muted">Sin asignar</span>
-              }
-            </td>
-            <td>{{ ticket.FechaCreacion | date: 'dd/MM/yyyy HH:mm' }}</td>
-            <td>{{ ticket.FechaActualizacion | date: 'dd/MM/yyyy HH:mm' }}</td>
-            
-            <td>
-              <div class="action-buttons">
-                <button class="btn btn-info" (click)="verDetalleYComentarios(ticket)">
-                   Ver 
-                </button>
-                
-
-                
-                <select class="select-estado" 
-                        [value]="ticket.estado?.idEstado" 
-                        (change)="cambiarEstado(ticket.idTicket, $event)">
-                  <option value="1">Abierto</option>
-                  <option value="2">En Progreso</option>
-                  <option value="3">Resuelto</option>
-                  <option value="4">Cerrado</option>
-                </select>
-              </div>
-            </td>
-
+            <th scope="col" class="py-3">ID</th>
+            <th scope="col" class="py-3 text-start" style="min-width: 250px">
+              Título / Descripción
+            </th>
+            <th scope="col" class="py-3">Prioridad</th>
+            <th scope="col" class="py-3">Estado</th>
+            <th scope="col" class="py-3">Solicitante</th>
+            <th scope="col" class="py-3">Asignado a</th>
+            <th scope="col" class="py-3">Creado el</th>
+            <th scope="col" class="py-3">Última Actualización</th>
+            <th scope="col" class="py-3" style="min-width: 150px">Acciones</th>
           </tr>
-        }
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          @for (ticket of tickets; track ticket.idTicket) {
+            <tr>
+              <td class="fw-bold text-primary">#{{ ticket.idTicket }}</td>
+              <td class="text-start">
+                <div class="fw-semibold text-dark">{{ ticket.titulo }}</div>
+                <div class="text-muted small text-truncate" style="max-width: 300px">
+                  {{ ticket.descripcion }}
+                </div>
+              </td>
+              <td>
+                <span
+                  class="badge px-2.5 py-1.5"
+                  [ngClass]="{
+                    'bg-danger text-light': ticket.prioridad?.nombre === 'Crítica',
+                    'bg-warning text-dark': ticket.prioridad?.nombre === 'Alta',
+                    'bg-info text-dark': ticket.prioridad?.nombre === 'Media',
+                    'bg-success text-light': ticket.prioridad?.nombre === 'Baja',
+                  }"
+                >
+                  {{ ticket.prioridad?.nombre }}
+                </span>
+              </td>
+              <td>
+                <span
+                  class="badge rounded-pill px-3 py-2 text-uppercase font-monospace fs-8"
+                  [ngClass]="{
+                    'bg-primary text-light': ticket.estado?.nombre === 'Abierto',
+                    'bg-warning text-dark': ticket.estado?.nombre?.trim() === 'En Proceso',
+                    'bg-success text-light': ticket.estado?.nombre === 'Resuelto',
+                    'bg-secondary text-light': ticket.estado?.nombre === 'Cerrado',
+                  }"
+                >
+                  <i
+                    class="bi me-1"
+                    [ngClass]="{
+                      'bi-folder2-open': ticket.estado?.nombre === 'Abierto',
+                      'bi-gear-wide-connected': ticket.estado?.nombre?.trim() === 'En Proceso',
+                      'bi-check-circle-fill': ticket.estado?.nombre === 'Resuelto',
+                      'bi-lock-fill': ticket.estado?.nombre === 'Cerrado',
+                    }"
+                  >
+                  </i>
+                  {{ ticket.estado?.nombre }}
+                </span>
+              </td>
+              <td class="text-muted">
+                <i class="bi bi-person me-1"></i>{{ ticket.usuarioSolicitante?.username }}
+              </td>
+              <td>
+                @if (ticket.agenteAsignado) {
+                  <span class="fw-medium text-dark">
+                    <i class="bi bi-person-badge text-secondary me-1"></i
+                    >{{ ticket.agenteAsignado.username }}
+                  </span>
+                } @else {
+                  <span class="text-muted style-italic small">
+                    <i class="bi bi-dash-circle me-1"></i>Sin asignar
+                  </span>
+                }
+              </td>
+              <td class="small">
+                <i class="bi bi-calendar3 me-1 text-muted"></i
+                >{{ ticket.FechaCreacion | date: 'dd/MM/yyyy HH:mm' }}
+              </td>
+              <td class="small text-muted">
+                <i class="bi bi-clock-history me-1"></i
+                >{{ ticket.FechaActualizacion | date: 'dd/MM/yyyy HH:mm' }}
+              </td>
+              <td>
+                <div class="d-flex gap-2 justify-content-center align-items-center">
+                  <button
+                    class="btn btn-outline-info btn-sm px-3"
+                    (click)="verDetalle(ticket)"
+                  >
+                    <i class="bi bi-eye me-1"></i> Ver
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   }
 </div>

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core'; // 1. Importamos inject
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Prioridad } from '../../Interfaces/prioridad';
@@ -6,6 +6,7 @@ import { PrioridadService } from '../../Services/prioridad-service';
 import { TicketService } from '../../Services/ticket-service';
 import { Ticket } from '../../Interfaces/ticket';
 import { Usuario } from '../../Interfaces/usuario';
+import { AuthService } from '../../Services/auth-service'; // 2. Importamos tu AuthService
 
 @Component({
   selector: 'app-vista-crear-tickets',
@@ -15,6 +16,8 @@ import { Usuario } from '../../Interfaces/usuario';
   styleUrl: './vista-crear-tickets.css',
 })
 export class VistaCrearTickets implements OnInit {
+  private authService = inject(AuthService);
+
   public prioridades: Prioridad[] = [];
   ticket: Ticket = {
     idTicket: 0,
@@ -27,6 +30,9 @@ export class VistaCrearTickets implements OnInit {
   usuario: Usuario = {
     idUsuario: 5,
   };
+
+  public miRol: string | null = null;
+  public token: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -44,6 +50,12 @@ export class VistaCrearTickets implements OnInit {
   }
 
   ngOnInit(): void {
+    this.miRol = this.authService.getUserRol();
+    this.token = this.authService.getToken();
+    console.log('El rol del usuario es:', this.miRol);
+    console.log('El token: ', this.token)
+
+
     this.prioridadService.getAll().subscribe({
       next: (result) => {
         if (result.correct) {
@@ -64,9 +76,14 @@ export class VistaCrearTickets implements OnInit {
       this.ticketForm.markAllAsTouched();
       return;
     }
+
+    if (this.miRol === 'Administrador') {
+      console.warn('Los usuarios con rol Invitado no pueden crear tickets.');
+      return;
+    }
+
     this.ticket.titulo = this.ticketForm.value.titulo;
     this.ticket.descripcion = this.ticketForm.value.descripcion;
-    this.ticket.titulo = this.ticketForm.value.titulo;
     this.ticket.prioridad = this.ticketForm.value.prioridad;
     this.ticket.usuarioSolicitante = this.usuario;
 

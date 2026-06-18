@@ -7,8 +7,6 @@ import { UsuarioLogin } from '../../Interfaces/usuario-login';
 import { LoginResponse } from '../../Interfaces/loginResponse';
 import { AuthService } from '../../Services/auth-service';
 
-
-
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -26,19 +24,24 @@ export class Login {
 
   constructor(
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
   ) {}
 
   login(): void {
     this.authService.login(this.usuario).subscribe({
-
-      next: (result)=>{
-        console.log(result)
+      next: (result) => {
+        if (result.correct) {
+          console.log(result)
+          this.router.navigate(['/tickets']);
+        } else {
+          this.error = result.message || 'Usuario o contraseña incorrectos';
+          
+        }
       },
-      error: (err) =>{
-        console.error(err)
-      }
-    })
-   console.log(this.usuario)
+      error: (err) => {
+        console.error(err);
+        this.error = 'Ocurrió un error en el servidor.';
+      },
+    });
   }
 }

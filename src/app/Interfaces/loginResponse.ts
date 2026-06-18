@@ -2,7 +2,7 @@ import { Rol } from './rol';
 
 export interface LoginResponse {
   token: string;
-  username?: string;
-  rol?: Rol;
+  username: string;
+  rol: string;
   idUsuario?: number;
 }
