@@ -10,20 +10,28 @@ import { Ticket } from '../Interfaces/ticket';
 })
 export class TicketService {
   apiEndpoint = environment.apiUrl;
-  
 
   constructor(private http: HttpClient) {}
 
-  getAllTickets(): Observable<Result<Ticket>>{
-    return this.http.get<Result<Ticket>>(this.apiEndpoint+'/tickets/getAll');
+  getAllTickets(): Observable<Result<Ticket>> {
+    return this.http.get<Result<Ticket>>(this.apiEndpoint + '/tickets/getAll');
+  }
+  getAllTicketsByUsuarioSolicitado(idUsuario: number): Observable<Result<Ticket>> {
+    return this.http.get<Result<Ticket>>(
+      this.apiEndpoint + '/tickets/ByUsuarioSolicitado?idUsuario=' + idUsuario,
+    );
+  }
+  getAllTicketsByAgenteAsignado(idUsuario: number): Observable<Result<Ticket>> {
+    return this.http.get<Result<Ticket>>(
+      this.apiEndpoint + '/tickets/ByAgenteAsignado?idUsuario=' + idUsuario,
+    );
   }
 
-  getById(idTicket: number): Observable<Result<Ticket>>{
-    return this.http.get<Result<Ticket>>(this.apiEndpoint+'/tickets?idTicket='+ idTicket);
+  getById(idTicket: number): Observable<Result<Ticket>> {
+    return this.http.get<Result<Ticket>>(this.apiEndpoint + '/tickets?idTicket=' + idTicket);
   }
 
-  addTicket(ticket: Ticket):  Observable<Result<Ticket>>{
-    return this.http.post<Result<Ticket>>(this.apiEndpoint+'/tickets', ticket);
+  addTicket(ticket: Ticket): Observable<Result<Ticket>> {
+    return this.http.post<Result<Ticket>>(this.apiEndpoint + '/tickets', ticket);
   }
-
 }

@@ -6,7 +6,9 @@ import { PrioridadService } from '../../Services/prioridad-service';
 import { TicketService } from '../../Services/ticket-service';
 import { Ticket } from '../../Interfaces/ticket';
 import { Usuario } from '../../Interfaces/usuario';
-import { AuthService } from '../../Services/auth-service'; // 2. Importamos tu AuthService
+import { AuthService } from '../../Services/auth-service';
+import Swal from 'sweetalert2';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-vista-crear-tickets',
@@ -26,18 +28,22 @@ export class VistaCrearTickets implements OnInit {
     agenteAsignado: undefined,
     prioridad: undefined,
   };
+
   ticketForm: FormGroup;
   usuario: Usuario = {
-    idUsuario: 5,
+    idUsuario: 0,
   };
 
-  public miRol: string | null = null;
-  public token: string | null = null;
+  miRol: string | null = null;
+  token: string | null = null;
+  username: string | null = null;
+  idUsuario: number | null = null;
 
   constructor(
     private fb: FormBuilder,
     private prioridadService: PrioridadService,
     private ticketService: TicketService,
+    private router: Router
   ) {
     this.ticketForm = this.fb.group({
       titulo: ['', [Validators.required, Validators.maxLength(200)]],
@@ -52,9 +58,11 @@ export class VistaCrearTickets implements OnInit {
   ngOnInit(): void {
     this.miRol = this.authService.getUserRol();
     this.token = this.authService.getToken();
+    this.username = this.authService.getUsername();
+    this.idUsuario = Number(this.authService.getIdUsuario());
+    this.usuario.idUsuario = this.idUsuario;
     console.log('El rol del usuario es:', this.miRol);
-    console.log('El token: ', this.token)
-
+    console.log('El token: ', this.token);
 
     this.prioridadService.getAll().subscribe({
       next: (result) => {
@@ -74,11 +82,13 @@ export class VistaCrearTickets implements OnInit {
   crearTicket(): void {
     if (this.ticketForm.invalid) {
       this.ticketForm.markAllAsTouched();
-      return;
-    }
 
-    if (this.miRol === 'Administrador') {
-      console.warn('Los usuarios con rol Invitado no pueden crear tickets.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Formulario incompleto',
+        text: 'Por favor completa todos los campos requeridos.',
+      });
+
       return;
     }
 
@@ -87,14 +97,39 @@ export class VistaCrearTickets implements OnInit {
     this.ticket.prioridad = this.ticketForm.value.prioridad;
     this.ticket.usuarioSolicitante = this.usuario;
 
-    console.log(this.ticket);
-    console.log(this.ticketForm.value);
-
     this.ticketService.addTicket(this.ticket).subscribe({
       next: (response) => {
-        console.log(response);
+        Swal.fire({
+          icon: 'success',
+          title: 'Ticket creado',
+          text: 'El ticket se registró correctamente.',
+          confirmButtonText: 'Aceptar',
+        });
+
+        this.ticketForm.reset();
+        this.ticketForm.patchValue({
+          prioridad: {
+            idPrioridad: '',
+            nombre: '',
+          },
+        });
+
+        this.ticket = {
+          idTicket: 0,
+          titulo: '',
+          descripcion: '',
+          agenteAsignado: undefined,
+          prioridad: undefined,
+        };
+        this.router.navigate(['/tickets'])
       },
       error: (err) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No fue posible crear el ticket.',
+        });
+
         console.error(err);
       },
     });

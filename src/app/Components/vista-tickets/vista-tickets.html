@@ -3,11 +3,47 @@
     <h2 class="fw-bold text-secondary mb-0">
       <i class="bi bi-ticket-perforated me-2 text-primary"></i>Listado de Tickets
     </h2>
-    
-    <button class="btn btn-primary fw-semibold d-flex align-items-center gap-2 shadow-sm" (click)="irReporte()">
+
+    <button
+      class="btn btn-primary fw-semibold d-flex align-items-center gap-2 shadow-sm"
+      (click)="irReporte()"
+    >
       <i class="bi bi-plus-lg fs-5"></i>
       <span>Levantar Reporte</span>
     </button>
+  </div>
+
+  <div class="row mb-3">
+    <div class="col-md-4">
+      <label class="form-label fw-semibold">Filtrar por Estado</label>
+      <select class="form-select" [(ngModel)]="estadoFiltro" (change)="aplicarFiltros()">
+        <option value="">Todos los estados</option>
+        @for (estado of estados; track estado.idEstado) {
+          <option [value]="estado.nombre">
+            {{ estado.nombre }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label fw-semibold">Filtrar por Prioridad</label>
+      <select class="form-select" [(ngModel)]="prioridadFiltro" (change)="aplicarFiltros()">
+        <option value="">Todas las prioridades</option>
+        @for (prioridad of prioridades; track prioridad.idPrioridad) {
+          <option [value]="prioridad.nombre">
+            {{ prioridad.nombre }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <div class="col-md-4 d-flex align-items-end">
+      <button class="btn btn-outline-secondary w-100" (click)="limpiarFiltros()">
+        <i class="bi bi-x-circle me-1"></i>
+        Limpiar filtros
+      </button>
+    </div>
   </div>
 
   @if (tickets.length === 0) {
@@ -36,7 +72,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (ticket of tickets; track ticket.idTicket) {
+          @for (ticket of ticketsFiltrados; track ticket.idTicket) {
             <tr>
               <td class="fw-bold text-primary">#{{ ticket.idTicket }}</td>
               <td class="text-start">
@@ -106,10 +142,7 @@
               </td>
               <td>
                 <div class="d-flex gap-2 justify-content-center align-items-center">
-                  <button
-                    class="btn btn-outline-info btn-sm px-3"
-                    (click)="verDetalle(ticket)"
-                  >
+                  <button class="btn btn-outline-info btn-sm px-3" (click)="verDetalle(ticket)">
                     <i class="bi bi-eye me-1"></i> Ver
                   </button>
                 </div>
