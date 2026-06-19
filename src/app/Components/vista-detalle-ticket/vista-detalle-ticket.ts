@@ -7,6 +7,7 @@ import { Comentario } from '../../Interfaces/comentario';
 import { DatePipe } from '@angular/common';
 import { Historial } from '../../Interfaces/historial';
 import { HistorialService } from '../../Services/historial-service';
+import { Usuario } from '../../Interfaces/usuario';
 import Swal from 'sweetalert2';
 import { AuthService } from '../../Services/auth-service';
 import { EstadoTicket } from '../../Interfaces/estado-ticket';
@@ -57,6 +58,27 @@ export class VistaDetalleTicket implements OnInit {
   comentarios: Comentario[] = [];
   historial: Historial[] = [];
 
+  historialNuevo: Historial = {
+    idHistorial: 0,
+    ticket: this.ticket,
+    estadoAnterior: this.ticket.estado!,
+    estadoActual: this.ticket.estado!,
+    usuario: {
+      idUsuario: 0,
+    },
+    fechaActualizaciion: new Date(),
+    descripcionCambio: '',
+  };
+  nuevoComentario: Comentario = {
+    idComentario: 0,
+    ticket: this.ticket,
+    usuario: {
+      idUsuario: 0,
+    },
+    mensaje: '',
+    Fecha: new Date(),
+  };
+
   agentesDisponibles: any[] = [
     { idUsuario: 1, username: 'soporte.tecnico' },
     { idUsuario: 2, username: 'diego.dev' },
@@ -68,6 +90,7 @@ export class VistaDetalleTicket implements OnInit {
   miRol: string | null = null;
   token: string | null = null;
   username: string | null = null;
+  idUsuario: number | null = null;
 
   constructor(
     private ticketService: TicketService,
@@ -82,10 +105,12 @@ export class VistaDetalleTicket implements OnInit {
     this.miRol = this.authService.getUserRol();
     this.token = this.authService.getToken();
     this.username = this.authService.getUsername();
+    this.idUsuario = Number(this.authService.getIdUsuario());
 
     console.log('El username es:', this.username);
     console.log('El rol del usuario es:', this.miRol);
     console.log('El token: ', this.token);
+    console.log('El idUsuario: ', this.idUsuario);
     if (ticketLocal) {
       this.ticket = JSON.parse(ticketLocal);
     }
@@ -111,9 +136,10 @@ export class VistaDetalleTicket implements OnInit {
     this.estadoService.getAllEstados().subscribe({
       next: (result) => {
         if (result.correct) {
-          this.estadosDisponibles = result.objects.flat().filter((t) => {
-            t.nombre.toLocaleLowerCase() !== '';
-          });
+          console.log(result);
+          this.estadosDisponibles = result.objects
+            .flat()
+            .filter((item) => item.nombre !== 'Cerrado');
         } else {
           console.log(result);
         }
@@ -133,7 +159,10 @@ export class VistaDetalleTicket implements OnInit {
 
   cargarHistorial(): void {
     this.historialService.getHistorialById(this.ticket.idTicket).subscribe({
-      next: (result) => (this.historial = result.objects),
+      next: (result) => {
+        console.log(result);
+        this.historial = result.objects;
+      },
       error: (err) => console.error('Error al cargar historial:', err),
     });
   }
@@ -209,20 +238,38 @@ export class VistaDetalleTicket implements OnInit {
     });
   }
 
-  private ejecutarCambioEstadoBackend(idEstado: number): void {
-    const ticketActualizado = { ...this.ticket };
-    ticketActualizado.estado = { idEstado: idEstado } as any;
+  private ejecutarCambioEstadoBackend(result: number): void {
+    console.log(result);
+    const estadoActual = this.estadosDisponibles.find((t) => t.idEstado === result);
+    if (!estadoActual) {
+      console.error('Estado no encontrado', result);
+      Swal.fire('Error', 'No se encontró el estado seleccionado.', 'error');
+      return;
+    }
 
-    // this.ticketService.update(ticketActualizado).subscribe({
-    //   next: () => {
-    //     Swal.fire('¡Actualizado!', 'El estado del ticket ha cambiado.', 'success');
-    //     this.cargarDatosTicket();
-    //   },
-    //   error: (err) => {
-    //     console.error(err);
-    //     Swal.fire('Error', 'No se pudo actualizar el estado.', 'error');
-    //   }
-    // });
+    this.historialNuevo = {
+      idHistorial: 0,
+      ticket: this.ticket,
+      estadoAnterior: this.ticket.estado!,
+      estadoActual,
+      usuario: {
+        idUsuario: Number(this.idUsuario),
+      },
+      fechaActualizaciion: new Date(),
+      descripcionCambio: '',
+    };
+    console.log(this.historialNuevo);
+
+    this.historialService.updateEstado(this.historialNuevo).subscribe({
+      next: () => {
+        Swal.fire('¡Actualizado!', 'El estado del ticket ha cambiado.', 'success');
+        this.cargarDatosTicket();
+      },
+      error: (err) => {
+        console.error(err);
+        Swal.fire('Error', 'No se pudo actualizar el estado.', 'error');
+      },
+    });
   }
 
   abrirModalCerrarTicket(): void {
@@ -272,7 +319,7 @@ export class VistaDetalleTicket implements OnInit {
     // this.ticketService.update(ticketCerrado).subscribe({
     //   next: () => {
     //     // 2. Guardar el comentario final obligatorio
-    //     this.enviarComentarioBackend(comentarioFinal);
+    //     this.agregarComentario(comentarioFinal);
     //     Swal.fire('¡Ticket Cerrado!', 'El caso ha sido solucionado y archivado.', 'success');
     //     this.cargarDatosTicket(); // Recargará la UI bloqueando los botones
     //   },
@@ -303,25 +350,32 @@ export class VistaDetalleTicket implements OnInit {
       },
     }).then((result) => {
       if (result.isConfirmed) {
-        this.enviarComentarioBackend(result.value);
+        this.agregarComentario(result.value);
       }
     });
   }
 
-  private enviarComentarioBackend(mensaje: string): void {
-    const nuevoComentario: any = {
+  private agregarComentario(mensaje: string): void {
+    this.nuevoComentario = {
+      idComentario: 0,
+      ticket: this.ticket,
+      usuario: {
+        idUsuario: Number(this.idUsuario),
+      },
       mensaje: mensaje,
-      ticket: { idTicket: this.ticket.idTicket },
-      usuario: { idUsuario: this.ticket.usuarioSolicitante?.idUsuario || 1 },
+      Fecha: new Date(),
     };
+    console.log(this.nuevoComentario)
 
-    // this.comentarioService.save(nuevoComentario).subscribe({
-    //   next: () => {
-    //     this.cargarComentarios();
-    //   },
-    //   error: () => {
-    //     Swal.fire('Error', 'No se pudo guardar el comentario en el historial.', 'error');
-    //   }
-    // });
+    this.comentarioService.addComentario(this.nuevoComentario).subscribe({
+      next: () => {
+        
+        Swal.fire('¡Actualizado!', 'El estado del ticket ha cambiado.', 'success');
+        this.cargarComentarios();
+      },
+      error: () => {
+        Swal.fire('Error', 'No se pudo guardar el comentario en el historial.', 'error');
+      },
+    });
   }
 }

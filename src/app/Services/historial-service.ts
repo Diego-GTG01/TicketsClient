@@ -13,7 +13,10 @@ export class HistorialService {
 
   constructor(private http: HttpClient) {}
 
-  getHistorialById(idTicket: number): Observable<Result<Historial>>{
-    return this.http.get<Result<Historial>>(this.apiUrl+'/Historial?idTicket='+idTicket);
+  getHistorialById(idTicket: number): Observable<Result<Historial>> {
+    return this.http.get<Result<Historial>>(this.apiUrl + '/Historial?idTicket=' + idTicket);
+  }
+  updateEstado(historial: Historial): Observable<Result<Historial>> {
+    return this.http.post<Result<Historial>>(this.apiUrl + '/Historial', historial);
   }
 }

@@ -17,4 +17,8 @@ export class ComentarioService {
     return this.http.get<Result<Comentario>>(this.apiUrl+'/Comentario?idTicket='+idTicket);
   }
 
+  addComentario(comentario: Comentario): Observable<Result<Comentario>>{
+    return this.http.post<Result<Comentario>>(this.apiUrl+'/Comentario', comentario);
+  }
+
 }

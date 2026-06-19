@@ -16,7 +16,7 @@
             <i class="bi bi-person-plus fs-5"></i>
             <span>Asignar Agente</span>
           </button>
-        }@else{
+        } @else {
           <button
             class="btn btn-outline-primary fw-semibold d-flex align-items-center gap-1 shadow-sm btn-sm px-3"
             (click)="abrirModalAsignar()"
@@ -175,66 +175,83 @@
                   <div>
                     <i class="bi bi-person-circle text-primary me-2"></i>
                     <strong>{{ cambio.usuario.username }}</strong>
-                    <span class="text-muted">cambió el estado:</span>
-                    <span class="badge bg-light text-secondary mx-1 border">{{
-                      cambio.estadoAnterior.nombre
-                    }}</span>
-                    <i class="bi bi-arrow-right text-muted mx-1"></i>
-                    <span class="badge bg-light text-primary mx-1 border">{{
-                      cambio.estadoActual.nombre
-                    }}</span>
+
+                    @if (cambio.estadoAnterior.idEstado !== cambio.estadoActual.idEstado) {
+                      <span class="text-muted"> cambió el estado: </span>
+
+                      <span class="badge bg-light text-secondary mx-1 border">
+                        {{ cambio.estadoAnterior.nombre }}
+                      </span>
+
+                      <i class="bi bi-arrow-right text-muted mx-1"></i>
+
+                      <span class="badge bg-light text-primary mx-1 border">
+                        {{ cambio.estadoActual.nombre }}
+                      </span>
+                    }
+
+                    @if (cambio.descripcionCambio) {
+                      <div class="mt-2">
+                        <small class="text-muted">
+                          <i class="bi bi-chat-left-text me-1"></i>
+                          {{ cambio.descripcionCambio }}
+                        </small>
+                      </div>
+                    }
                   </div>
+
                   <small class="text-muted font-monospace" style="font-size: 0.8rem">
                     {{ cambio.fechaActualizaciion | date: 'dd/MM/yyyy HH:mm' }}
                   </small>
                 </div>
               </li>
             } @empty {
-              <div class="p-4 text-center text-muted italic small">
-                <i class="bi bi-info-circle me-1"></i>No hay movimientos registrados.
+              <div class="p-4 text-center text-muted small">
+                <i class="bi bi-info-circle me-1"></i>
+                No hay movimientos registrados.
               </div>
             }
           </ul>
         </div>
-      </div>
 
-      <div class="card shadow-sm flex-grow-1">
-        <div class="card-header bg-light py-2.5 border-bottom">
-          <h6 class="card-title mb-0 fw-semibold text-dark">
-            <i class="bi bi-chat-square-dots me-2 text-info"></i>Comentarios
-          </h6>
-        </div>
-        <div class="card-body" style="max-height: 350px; overflow-y: auto">
-          @for (comentario of comentarios; track comentario.idComentario) {
-            @let esMiMensaje = comentario.usuario?.username === username;
+        <div class="card shadow-sm flex-grow-1">
+          <div class="card-header bg-light py-2.5 border-bottom">
+            <h6 class="card-title mb-0 fw-semibold text-dark">
+              <i class="bi bi-chat-square-dots me-2 text-info"></i>Comentarios
+            </h6>
+          </div>
+          <div class="card-body" style="max-height: 350px; overflow-y: auto">
+            @for (comentario of comentarios; track comentario.idComentario) {
+              @let esMiMensaje = comentario.usuario?.username === username;
 
-            <div class="d-flex mb-2" [class.justify-content-end]="esMiMensaje">
-              <div
-                class="rounded p-3 border-3 shadow-xs"
-                style="max-width: 75%"
-                [ngClass]="{
-                  'bg-success-subtle border-end border-success text-end': esMiMensaje,
-                  'bg-light border-start border-info': !esMiMensaje,
-                }"
-              >
-                <div class="d-flex justify-content-between align-items-center mb-1 gap-3">
-                  <strong class="text-dark small">
-                    <i class="bi bi-person me-1"></i>
-                    {{ esMiMensaje ? 'Tú' : comentario.usuario?.username }}
-                  </strong>
-                  <small class="text-muted style-italic" style="font-size: 0.8rem">
-                    <i class="bi bi-calendar-event me-1"></i>
-                    {{ comentario.Fecha | date: 'dd/MM/yyyy HH:mm' }}
-                  </small>
+              <div class="d-flex mb-2" [class.justify-content-end]="esMiMensaje">
+                <div
+                  class="rounded p-3 border-3 shadow-xs"
+                  style="max-width: 75%"
+                  [ngClass]="{
+                    'bg-success-subtle border-end border-success text-end': esMiMensaje,
+                    'bg-light border-start border-info': !esMiMensaje,
+                  }"
+                >
+                  <div class="d-flex justify-content-between align-items-center mb-1 gap-3">
+                    <strong class="text-dark small">
+                      <i class="bi bi-person me-1"></i>
+                      {{ esMiMensaje ? 'Tú' : comentario.usuario?.username }}
+                    </strong>
+                    <small class="text-muted style-italic" style="font-size: 0.8rem">
+                      <i class="bi bi-calendar-event me-1"></i>
+                      {{ comentario.Fecha | date: 'dd/MM/yyyy HH:mm' }}
+                    </small>
+                  </div>
+                  <p class="mb-0 text-secondary small text-start">{{ comentario.mensaje }}</p>
                 </div>
-                <p class="mb-0 text-secondary small text-start">{{ comentario.mensaje }}</p>
               </div>
-            </div>
-          } @empty {
-            <div class="text-center text-muted py-4 italic small">
-              <i class="bi bi-chat-left-x me-1"></i>No existen comentarios para este ticket.
-            </div>
-          }
+            } @empty {
+              <div class="text-center text-muted py-4 italic small">
+                <i class="bi bi-chat-left-x me-1"></i>No existen comentarios para este ticket.
+              </div>
+            }
+          </div>
         </div>
       </div>
     </div>

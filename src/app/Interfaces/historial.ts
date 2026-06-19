@@ -8,7 +8,8 @@ export interface Historial {
     estadoAnterior: EstadoTicket,
     estadoActual: EstadoTicket,
     usuario: Usuario,
-    fechaActualizaciion: Date
+    fechaActualizaciion: Date,
+    descripcionCambio: string
 
 
     

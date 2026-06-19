@@ -16,22 +16,24 @@ export class AuthService {
   private userToken = signal<string | null>(sessionStorage.getItem('token'));
   private userRol = signal<string | null>(sessionStorage.getItem('rol'));
   private username = signal<string | null>(sessionStorage.getItem('username'));
-  
+  private idUsuario = signal<string | null>(sessionStorage.getItem('idUsuario'));
 
   login(usuarioLogin: UsuarioLogin): Observable<Result<LoginResponse>> {
     return this.http.post<Result<LoginResponse>>(`${this.apiUrl}/auth/login`, usuarioLogin).pipe(
-      tap(response => {
+      tap((response) => {
         if (response.correct && response.object) {
-          console.log(response)
+          console.log(response);
           this.userToken.set(response.object.token);
           this.userRol.set(response.object.rol);
           this.username.set(response.object.username);
+          this.idUsuario.set(response.object.idUsuario.toString());
 
           sessionStorage.setItem('token', response.object.token);
           sessionStorage.setItem('rol', response.object.rol);
-          sessionStorage.setItem('username', response.object.username)
+          sessionStorage.setItem('username', response.object.username);
+          sessionStorage.setItem('idUsuario', response.object.idUsuario.toString());
         }
-      })
+      }),
     );
   }
 
@@ -44,9 +46,11 @@ export class AuthService {
   }
 
   getUsername(): string | null {
-    return this.username  ();
+    return this.username();
   }
-
+  getIdUsuario(): string | null {
+    return this.idUsuario();
+  }
 
   isAuthenticated(): boolean {
     return this.userToken() !== null;

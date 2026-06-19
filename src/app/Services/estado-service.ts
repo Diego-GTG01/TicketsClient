@@ -9,16 +9,15 @@ import { Result } from '../Interfaces/result';
   providedIn: 'root',
 })
 export class EstadoService {
-  apiUrl= environment.apiUrl;
+  apiUrl = environment.apiUrl;
 
+  private http = inject(HttpClient);
 
-  private http = inject(HttpClient)
-
-  getAllEstados():Observable<Result<EstadoTicket[]>>{
-    return this.http.get<Result<EstadoTicket[]>>(this.apiUrl+'/Estado');
+  getAllEstados(): Observable<Result<EstadoTicket[]>> {
+    return this.http.get<Result<EstadoTicket[]>>(this.apiUrl + '/Estado');
   }
 
-
-
-  
+  updateEstado(estadoTicket: EstadoTicket): Observable<Result<EstadoTicket>> {
+    return this.http.post<Result<EstadoTicket>>(this.apiUrl + '/Estado', estadoTicket );
+  }
 }
