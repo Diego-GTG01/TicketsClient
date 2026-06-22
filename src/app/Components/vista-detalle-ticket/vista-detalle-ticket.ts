@@ -86,6 +86,7 @@ export class VistaDetalleTicket implements OnInit {
   ];
 
   estadosDisponibles: EstadoTicket[] = [];
+  estadosDisponiblesParaCambio: EstadoTicket[] = [];
 
   miRol: string | null = null;
   token: string | null = null;
@@ -98,7 +99,7 @@ export class VistaDetalleTicket implements OnInit {
     private historialService: HistorialService,
     private authService: AuthService,
     private estadoService: EstadoService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     const ticketLocal = localStorage.getItem('ticket');
@@ -137,9 +138,9 @@ export class VistaDetalleTicket implements OnInit {
       next: (result) => {
         if (result.correct) {
           console.log(result);
-          this.estadosDisponibles = result.objects
-            .flat()
-            .filter((item) => item.nombre !== 'Cerrado');
+          this.estadosDisponibles = result.objects.flat();
+          this.estadosDisponiblesParaCambio = this.estadosDisponibles
+            .filter(item => item.nombre !== 'Cerrado');
         } else {
           console.log(result);
         }
@@ -152,7 +153,11 @@ export class VistaDetalleTicket implements OnInit {
 
   cargarComentarios(): void {
     this.comentarioService.getComentarioByIdTicket(this.ticket.idTicket).subscribe({
-      next: (result) => (this.comentarios = result.objects),
+      next: (result) => {this.comentarios = result.objects.sort((a, b) => {
+          const fechaA = new Date(a.Fecha).getTime();
+          const fechaB = new Date(b.Fecha).getTime();
+          return fechaA - fechaB; // Ascendente (viejo a nuevo)
+        });},
       error: (err) => console.error('Error al cargar comentarios:', err),
     });
   }
@@ -161,7 +166,12 @@ export class VistaDetalleTicket implements OnInit {
     this.historialService.getHistorialById(this.ticket.idTicket).subscribe({
       next: (result) => {
         console.log(result);
-        this.historial = result.objects;
+        // Ordenar el historial de más viejo a más nuevo
+        this.historial = result.objects.sort((a, b) => {
+          const fechaA = new Date(a.fechaActualizaciion).getTime();
+          const fechaB = new Date(b.fechaActualizaciion).getTime();
+          return fechaA - fechaB; // Ascendente (viejo a nuevo)
+        });
       },
       error: (err) => console.error('Error al cargar historial:', err),
     });
@@ -213,7 +223,7 @@ export class VistaDetalleTicket implements OnInit {
 
   abrirModalCambiarEstado(): void {
     const opcionesEstados: { [key: string]: string } = {};
-    this.estadosDisponibles.forEach((e) => {
+    this.estadosDisponiblesParaCambio.forEach((e) => {
       opcionesEstados[e.idEstado] = e.nombre;
     });
 
@@ -256,7 +266,7 @@ export class VistaDetalleTicket implements OnInit {
         idUsuario: Number(this.idUsuario),
       },
       fechaActualizaciion: new Date(),
-      descripcionCambio: '',
+      descripcionCambio: `Estado cambiado de "${this.ticket.estado?.nombre}" a "${estadoActual.nombre}"`,
     };
     console.log(this.historialNuevo);
 
@@ -273,7 +283,6 @@ export class VistaDetalleTicket implements OnInit {
   }
 
   abrirModalCerrarTicket(): void {
-    // Paso 1: Confirmación
     Swal.fire({
       title: '¿Estás seguro de cerrar el ticket?',
       text: 'Una vez cerrado, el ticket pasará al archivo histórico y no podrá modificarse.',
@@ -285,7 +294,6 @@ export class VistaDetalleTicket implements OnInit {
       cancelButtonColor: '#6c757d',
     }).then((result) => {
       if (result.isConfirmed) {
-        // Paso 2: Obligar comentario final
         Swal.fire({
           title: 'Resolución Final',
           text: 'Por favor, ingresa una descripción o motivo del cierre (Obligatorio)',
@@ -312,22 +320,67 @@ export class VistaDetalleTicket implements OnInit {
   }
 
   private ejecutarCierreConComentario(comentarioFinal: string): void {
-    // 1. Modificar estado a Cerrado (Asumiendo ID 4 para 'Cerrado')
-    const ticketCerrado = { ...this.ticket };
-    ticketCerrado.estado = { idEstado: 4, nombre: 'Cerrado' } as any;
+    const estadoCerrado = this.estadosDisponibles.find(e => e.nombre === 'Cerrado')
+      || { idEstado: 4, nombre: 'Cerrado' };
 
-    // this.ticketService.update(ticketCerrado).subscribe({
-    //   next: () => {
-    //     // 2. Guardar el comentario final obligatorio
-    //     this.agregarComentario(comentarioFinal);
-    //     Swal.fire('¡Ticket Cerrado!', 'El caso ha sido solucionado y archivado.', 'success');
-    //     this.cargarDatosTicket(); // Recargará la UI bloqueando los botones
-    //   },
-    //   error: (err) => {
-    //     console.error(err);
-    //     Swal.fire('Error', 'Ocurrió un error al intentar cerrar el ticket.', 'error');
-    //   }
-    // });
+    const historialCierre: Historial = {
+      idHistorial: 0,
+      ticket: this.ticket,
+      estadoAnterior: this.ticket.estado!,
+      estadoActual: estadoCerrado,
+      usuario: {
+        idUsuario: Number(this.idUsuario),
+      },
+      fechaActualizaciion: new Date(),
+      descripcionCambio: `🔒 Ticket cerrado: ${comentarioFinal}`,
+    };
+
+    console.log('Historial de cierre:', historialCierre);
+
+    this.historialService.updateEstado(historialCierre).subscribe({
+      next: (result) => {
+        console.log('Resultado del cierre:', result);
+
+        this.nuevoComentario = {
+          idComentario: 0,
+          ticket: this.ticket,
+          usuario: {
+            idUsuario: Number(this.idUsuario),
+          },
+          mensaje: comentarioFinal,
+          Fecha: new Date(),
+        };
+
+        this.comentarioService.addComentario(this.nuevoComentario).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: '¡Ticket Cerrado!',
+              text: 'El caso ha sido solucionado y archivado correctamente.',
+              confirmButtonColor: '#28a745'
+            });
+            this.cargarDatosTicket();
+          },
+          error: (err) => {
+            console.error('Error al guardar comentario final:', err);
+            Swal.fire(
+              'Advertencia',
+              'El ticket se cerró pero no se pudo guardar el comentario final.',
+              'warning'
+            );
+            this.cargarDatosTicket();
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Error al cerrar ticket:', err);
+        Swal.fire(
+          'Error',
+          'Ocurrió un error al intentar cerrar el ticket. Verifica que tengas permisos.',
+          'error'
+        );
+      }
+    });
   }
 
   abrirModalComentario(): void {
@@ -369,7 +422,6 @@ export class VistaDetalleTicket implements OnInit {
 
     this.comentarioService.addComentario(this.nuevoComentario).subscribe({
       next: () => {
-        
         Swal.fire('¡Actualizado!', 'El estado del ticket ha cambiado.', 'success');
         this.cargarComentarios();
       },

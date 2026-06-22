@@ -37,7 +37,7 @@ export class VistaTickets implements OnInit {
     private prioridadService: PrioridadService,
     private authService: AuthService,
     private router: Router,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.miRol = this.authService.getUserRol();
@@ -46,9 +46,12 @@ export class VistaTickets implements OnInit {
     this.idUsuario = Number(this.authService.getIdUsuario());
 
     if ((this.miRol === 'Administrador')) {
+      console.log('Cargando tickets para Administrador');
       this.ticketService.getAllTickets().subscribe({
         next: (result) => {
           this.tickets = result.objects;
+          this.tickets.sort((a, b) => a.idTicket - b.idTicket);
+          this.ticketsFiltrados = this.tickets;
         },
         error: (err) => {
           console.warn(err);
@@ -57,9 +60,13 @@ export class VistaTickets implements OnInit {
     }
 
     if ((this.miRol === 'Agente')) {
+      console.log('Cargando tickets para Agente')
       this.ticketService.getAllTicketsByAgenteAsignado(Number(this.idUsuario)).subscribe({
+        
         next: (result) => {
           this.tickets = result.objects;
+          this.tickets.sort((a, b) => a.idTicket - b.idTicket);
+          this.ticketsFiltrados = this.tickets;
         },
         error: (err) => {
           console.warn(err);
@@ -68,9 +75,12 @@ export class VistaTickets implements OnInit {
     }
 
     if ((this.miRol === 'Usuario')) {
+      console.log('Cargando tickets para Usuario')
       this.ticketService.getAllTicketsByUsuarioSolicitado(Number(this.idUsuario)).subscribe({
         next: (result) => {
           this.tickets = result.objects;
+          this.tickets.sort((a, b) => a.idTicket - b.idTicket);
+          this.ticketsFiltrados = this.tickets;
         },
         error: (err) => {
           console.warn(err);
@@ -78,8 +88,7 @@ export class VistaTickets implements OnInit {
       });
     }
 
-    this.tickets.sort((a, b) => a.idTicket - b.idTicket);
-    this.ticketsFiltrados = this.tickets;
+
     this.cargarEstado();
     this.cargarPrioridad();
   }

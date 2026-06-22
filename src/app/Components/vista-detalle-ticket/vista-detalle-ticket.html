@@ -198,6 +198,14 @@
                         </small>
                       </div>
                     }
+
+                    @if (cambio.estadoActual.nombre === 'Cerrado') {
+                      <div class="mt-1">
+                        <span class="badge bg-danger bg-opacity-10 text-danger">
+                          <i class="bi bi-lock-fill me-1"></i> Ticket cerrado
+                        </span>
+                      </div>
+                    }
                   </div>
 
                   <small class="text-muted font-monospace" style="font-size: 0.8rem">
