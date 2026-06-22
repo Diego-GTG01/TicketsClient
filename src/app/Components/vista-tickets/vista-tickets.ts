@@ -9,11 +9,12 @@ import { EstadoTicket } from '../../Interfaces/estado-ticket';
 import { FormsModule } from '@angular/forms';
 import { PrioridadService } from '../../Services/prioridad-service';
 import { EstadoService } from '../../Services/estado-service';
+import { UserBadgeComponent } from '../user-badge-component/user-badge-component'
 
 @Component({
   selector: 'app-vista-tickets',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, UserBadgeComponent],
   templateUrl: './vista-tickets.html',
   styleUrl: './vista-tickets.css',
 })
@@ -31,6 +32,10 @@ export class VistaTickets implements OnInit {
   username: string | null = null;
   idUsuario: number | null = null;
 
+  usuarioSesion: any;
+
+  
+
   constructor(
     private ticketService: TicketService,
     private estadoService: EstadoService,
@@ -44,6 +49,8 @@ export class VistaTickets implements OnInit {
     this.token = this.authService.getToken();
     this.username = this.authService.getUsername();
     this.idUsuario = Number(this.authService.getIdUsuario());
+
+    this.usuarioSesion = { nombre: this.username, rol: this.miRol };
 
     if ((this.miRol === 'Administrador')) {
       console.log('Cargando tickets para Administrador');

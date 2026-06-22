@@ -1,25 +1,30 @@
 <div class="container mt-4">
   <div class="row justify-content-center">
     <div class="col-md-8 col-lg-6">
-      
+      <aside class="sidebar">
+        <app-user-badge-component [usuario]="usuarioSesion"></app-user-badge-component>
+      </aside>
+
       <div class="card shadow-sm border rounded bg-white">
         <div class="card-header bg-dark text-white py-3">
           <h2 class="card-title h4 mb-0 fw-bold">
             <i class="bi bi-plus-circle me-2"></i>Crear Nuevo Ticket
           </h2>
         </div>
-        
+
         <div class="card-body p-4">
           <form [formGroup]="ticketForm" (ngSubmit)="crearTicket()">
-            
             <div class="mb-3">
               <label class="form-label fw-semibold text-secondary">Título</label>
-              <input 
-                type="text" 
-                class="form-control" 
+              <input
+                type="text"
+                class="form-control"
                 formControlName="titulo"
                 placeholder="Ej. Error de conexión en la base de datos"
-                [ngClass]="{ 'is-invalid': ticketForm.get('titulo')?.invalid && ticketForm.get('titulo')?.touched }" 
+                [ngClass]="{
+                  'is-invalid':
+                    ticketForm.get('titulo')?.invalid && ticketForm.get('titulo')?.touched,
+                }"
               />
               <div class="invalid-feedback">
                 El título es obligatorio y no debe exceder los 200 caracteres.
@@ -28,49 +33,51 @@
 
             <div class="mb-3">
               <label class="form-label fw-semibold text-secondary">Descripción del Problema</label>
-              <textarea 
-                class="form-control" 
-                rows="5" 
+              <textarea
+                class="form-control"
+                rows="5"
                 formControlName="descripcion"
                 placeholder="Describe detalladamente el problema o solicitud..."
-                [ngClass]="{ 'is-invalid': ticketForm.get('descripcion')?.invalid && ticketForm.get('descripcion')?.touched }"
+                [ngClass]="{
+                  'is-invalid':
+                    ticketForm.get('descripcion')?.invalid &&
+                    ticketForm.get('descripcion')?.touched,
+                }"
               ></textarea>
-              <div class="invalid-feedback">
-                La descripción es obligatoria.
-              </div>
+              <div class="invalid-feedback">La descripción es obligatoria.</div>
             </div>
 
             <div class="mb-4" formGroupName="prioridad">
               <label class="form-label fw-semibold text-secondary">Prioridad</label>
-              <select 
-                class="form-select" 
+              <select
+                class="form-select"
                 formControlName="idPrioridad"
-                [ngClass]="{ 'is-invalid': ticketForm.get('prioridad.idPrioridad')?.invalid && ticketForm.get('prioridad.idPrioridad')?.touched }"
+                [ngClass]="{
+                  'is-invalid':
+                    ticketForm.get('prioridad.idPrioridad')?.invalid &&
+                    ticketForm.get('prioridad.idPrioridad')?.touched,
+                }"
               >
                 <option value="" selected disabled>Seleccione una prioridad...</option>
                 <option *ngFor="let prioridad of prioridades" [value]="prioridad.idPrioridad">
                   {{ prioridad.nombre }}
                 </option>
               </select>
-              <div class="invalid-feedback">
-                La prioridad es obligatoria.
-              </div>
+              <div class="invalid-feedback">La prioridad es obligatoria.</div>
             </div>
 
             <div class="d-grid gap-2">
-              <button 
-                type="submit" 
-                class="btn btn-primary py-2 fw-semibold" 
+              <button
+                type="submit"
+                class="btn btn-primary py-2 fw-semibold"
                 [disabled]="ticketForm.invalid"
               >
                 <i class="bi bi-check-circle me-1"></i>Crear Ticket
               </button>
             </div>
-
           </form>
         </div>
       </div>
-
     </div>
   </div>
 </div>

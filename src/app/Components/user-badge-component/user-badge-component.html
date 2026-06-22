@@ -1,0 +1,10 @@
+<div class="user-badge">
+  @if (usuario) {
+    <div class="user-info">
+      <span class="user-name">{{ usuario.nombre }}</span>
+      <span class="user-role badge bg-primary">{{ usuario.rol }}</span>
+    </div>
+  } @else {
+    <span class="text-muted">Invitado</span>
+  }
+</div>

@@ -9,11 +9,12 @@ import { Usuario } from '../../Interfaces/usuario';
 import { AuthService } from '../../Services/auth-service';
 import Swal from 'sweetalert2';
 import { Router } from '@angular/router';
+import { UserBadgeComponent } from '../user-badge-component/user-badge-component';
 
 @Component({
   selector: 'app-vista-crear-tickets',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, UserBadgeComponent],
   templateUrl: './vista-crear-tickets.html',
   styleUrl: './vista-crear-tickets.css',
 })
@@ -39,11 +40,13 @@ export class VistaCrearTickets implements OnInit {
   username: string | null = null;
   idUsuario: number | null = null;
 
+  usuarioSesion: any;
+
   constructor(
     private fb: FormBuilder,
     private prioridadService: PrioridadService,
     private ticketService: TicketService,
-    private router: Router
+    private router: Router,
   ) {
     this.ticketForm = this.fb.group({
       titulo: ['', [Validators.required, Validators.maxLength(200)]],
@@ -61,6 +64,7 @@ export class VistaCrearTickets implements OnInit {
     this.username = this.authService.getUsername();
     this.idUsuario = Number(this.authService.getIdUsuario());
     this.usuario.idUsuario = this.idUsuario;
+    this.usuarioSesion = { nombre: this.username, rol: this.miRol };
     console.log('El rol del usuario es:', this.miRol);
     console.log('El token: ', this.token);
 
@@ -121,7 +125,7 @@ export class VistaCrearTickets implements OnInit {
           agenteAsignado: undefined,
           prioridad: undefined,
         };
-        this.router.navigate(['/tickets'])
+        this.router.navigate(['/tickets']);
       },
       error: (err) => {
         Swal.fire({

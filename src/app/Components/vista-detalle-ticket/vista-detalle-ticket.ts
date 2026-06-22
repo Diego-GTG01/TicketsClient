@@ -12,15 +12,18 @@ import Swal from 'sweetalert2';
 import { AuthService } from '../../Services/auth-service';
 import { EstadoTicket } from '../../Interfaces/estado-ticket';
 import { EstadoService } from '../../Services/estado-service';
+import { UserBadgeComponent } from '../user-badge-component/user-badge-component';
 
 @Component({
   selector: 'app-vista-detalle-ticket',
   standalone: true,
-  imports: [DatePipe, CommonModule],
+  imports: [DatePipe, CommonModule, UserBadgeComponent],
   templateUrl: './vista-detalle-ticket.html',
   styleUrl: './vista-detalle-ticket.css',
 })
 export class VistaDetalleTicket implements OnInit {
+  usuarioSesion: any;
+
   ticket: Ticket = {
     idTicket: 0,
     titulo: '',
@@ -99,7 +102,7 @@ export class VistaDetalleTicket implements OnInit {
     private historialService: HistorialService,
     private authService: AuthService,
     private estadoService: EstadoService,
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     const ticketLocal = localStorage.getItem('ticket');
@@ -107,6 +110,7 @@ export class VistaDetalleTicket implements OnInit {
     this.token = this.authService.getToken();
     this.username = this.authService.getUsername();
     this.idUsuario = Number(this.authService.getIdUsuario());
+    this.usuarioSesion = { nombre: this.username, rol: this.miRol };
 
     console.log('El username es:', this.username);
     console.log('El rol del usuario es:', this.miRol);
@@ -139,8 +143,9 @@ export class VistaDetalleTicket implements OnInit {
         if (result.correct) {
           console.log(result);
           this.estadosDisponibles = result.objects.flat();
-          this.estadosDisponiblesParaCambio = this.estadosDisponibles
-            .filter(item => item.nombre !== 'Cerrado');
+          this.estadosDisponiblesParaCambio = this.estadosDisponibles.filter(
+            (item) => item.nombre !== 'Cerrado',
+          );
         } else {
           console.log(result);
         }
@@ -153,11 +158,13 @@ export class VistaDetalleTicket implements OnInit {
 
   cargarComentarios(): void {
     this.comentarioService.getComentarioByIdTicket(this.ticket.idTicket).subscribe({
-      next: (result) => {this.comentarios = result.objects.sort((a, b) => {
+      next: (result) => {
+        this.comentarios = result.objects.sort((a, b) => {
           const fechaA = new Date(a.Fecha).getTime();
           const fechaB = new Date(b.Fecha).getTime();
           return fechaA - fechaB; // Ascendente (viejo a nuevo)
-        });},
+        });
+      },
       error: (err) => console.error('Error al cargar comentarios:', err),
     });
   }
@@ -320,8 +327,10 @@ export class VistaDetalleTicket implements OnInit {
   }
 
   private ejecutarCierreConComentario(comentarioFinal: string): void {
-    const estadoCerrado = this.estadosDisponibles.find(e => e.nombre === 'Cerrado')
-      || { idEstado: 4, nombre: 'Cerrado' };
+    const estadoCerrado = this.estadosDisponibles.find((e) => e.nombre === 'Cerrado') || {
+      idEstado: 4,
+      nombre: 'Cerrado',
+    };
 
     const historialCierre: Historial = {
       idHistorial: 0,
@@ -357,7 +366,7 @@ export class VistaDetalleTicket implements OnInit {
               icon: 'success',
               title: '¡Ticket Cerrado!',
               text: 'El caso ha sido solucionado y archivado correctamente.',
-              confirmButtonColor: '#28a745'
+              confirmButtonColor: '#28a745',
             });
             this.cargarDatosTicket();
           },
@@ -366,10 +375,10 @@ export class VistaDetalleTicket implements OnInit {
             Swal.fire(
               'Advertencia',
               'El ticket se cerró pero no se pudo guardar el comentario final.',
-              'warning'
+              'warning',
             );
             this.cargarDatosTicket();
-          }
+          },
         });
       },
       error: (err) => {
@@ -377,9 +386,9 @@ export class VistaDetalleTicket implements OnInit {
         Swal.fire(
           'Error',
           'Ocurrió un error al intentar cerrar el ticket. Verifica que tengas permisos.',
-          'error'
+          'error',
         );
-      }
+      },
     });
   }
 
@@ -418,7 +427,7 @@ export class VistaDetalleTicket implements OnInit {
       mensaje: mensaje,
       Fecha: new Date(),
     };
-    console.log(this.nuevoComentario)
+    console.log(this.nuevoComentario);
 
     this.comentarioService.addComentario(this.nuevoComentario).subscribe({
       next: () => {
