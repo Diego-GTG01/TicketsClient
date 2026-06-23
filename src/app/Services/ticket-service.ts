@@ -34,4 +34,8 @@ export class TicketService {
   addTicket(ticket: Ticket): Observable<Result<Ticket>> {
     return this.http.post<Result<Ticket>>(this.apiEndpoint + '/tickets', ticket);
   }
+
+  update(idTicket: number, idAgente: number): Observable<Result<Ticket>> {
+    return this.http.patch(this.apiEndpoint);
+  }
 }

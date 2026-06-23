@@ -13,6 +13,7 @@ import { AuthService } from '../../Services/auth-service';
 import { EstadoTicket } from '../../Interfaces/estado-ticket';
 import { EstadoService } from '../../Services/estado-service';
 import { UserBadgeComponent } from '../user-badge-component/user-badge-component';
+import { AgentService } from '../../Services/agent-service';
 
 @Component({
   selector: 'app-vista-detalle-ticket',
@@ -83,9 +84,6 @@ export class VistaDetalleTicket implements OnInit {
   };
 
   agentesDisponibles: any[] = [
-    { idUsuario: 1, username: 'soporte.tecnico' },
-    { idUsuario: 2, username: 'diego.dev' },
-    { idUsuario: 3, username: 'carlos.admin' },
   ];
 
   estadosDisponibles: EstadoTicket[] = [];
@@ -102,6 +100,7 @@ export class VistaDetalleTicket implements OnInit {
     private historialService: HistorialService,
     private authService: AuthService,
     private estadoService: EstadoService,
+    private agentService: AgentService,
   ) {}
 
   ngOnInit(): void {
@@ -123,6 +122,7 @@ export class VistaDetalleTicket implements OnInit {
     if (this.ticket.idTicket > 0) {
       this.cargarDatosTicket();
       this.cargarEstados();
+      this.cargarAgentes();
     }
   }
 
@@ -134,6 +134,19 @@ export class VistaDetalleTicket implements OnInit {
         this.cargarHistorial();
       },
       error: (err) => console.error('Error al cargar ticket:', err),
+    });
+  }
+
+  cargarAgentes(): void {
+    this.agentService.getAllUsers("Agente").subscribe({
+     
+      next: (result) => {
+         console.log(result)
+         this.agentesDisponibles= result.objects
+      },
+      error: (error) => {
+        console.error(error)
+      },
     });
   }
 

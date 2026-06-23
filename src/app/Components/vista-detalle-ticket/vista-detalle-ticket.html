@@ -1,42 +1,56 @@
 <div class="container mt-4">
+  <aside class="sidebar">
+    <app-user-badge-component [usuario]="usuarioSesion"></app-user-badge-component>
+  </aside>
   <div
-    class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 pb-2 border-bottom gap-2"
+    class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-3"
   >
-    <aside class="sidebar">
-      <app-user-badge-component [usuario]="usuarioSesion"></app-user-badge-component>
-    </aside>
-
     <h2 class="fw-bold text-secondary mb-0">
       <i class="bi bi-info-circle me-2 text-primary"></i>Detalle del Ticket #{{ ticket.idTicket }}
     </h2>
+    <div
+      class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-3"
+    >
+    </div>
+  </div>
 
+  <div
+    class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 pb-2 border-bottom gap-2"
+  >
+    <div></div>
+    
     @if (ticket.estado?.nombre !== 'Cerrado') {
       <div class="d-flex flex-wrap gap-2">
-        @if (ticket.agenteAsignado === null) {
-          <button
-            class="btn btn-outline-primary fw-semibold d-flex align-items-center gap-1 shadow-sm btn-sm px-3"
-            (click)="abrirModalAsignar()"
-          >
-            <i class="bi bi-person-plus fs-5"></i>
-            <span>Asignar Agente</span>
-          </button>
-        } @else {
-          <button
-            class="btn btn-outline-primary fw-semibold d-flex align-items-center gap-1 shadow-sm btn-sm px-3"
-            (click)="abrirModalAsignar()"
-          >
-            <i class="bi bi-person-plus fs-5"></i>
-            <span>Cambiar Agente</span>
-          </button>
+        
+        @if (usuarioSesion.rol === 'Administrador') {
+          @if (ticket.agenteAsignado === null) {
+            <button
+              class="btn btn-outline-primary fw-semibold d-flex align-items-center gap-1 shadow-sm btn-sm px-3"
+              (click)="abrirModalAsignar()"
+            >
+              <i class="bi bi-person-plus fs-5"></i>
+              <span>Asignar Agente</span>
+            </button>
+          } @else {
+            <button
+              class="btn btn-outline-primary fw-semibold d-flex align-items-center gap-1 shadow-sm btn-sm px-3"
+              (click)="abrirModalAsignar()"
+            >
+              <i class="bi bi-person-plus fs-5"></i>
+              <span>Cambiar Agente</span>
+            </button>
+          }
         }
 
-        <button
-          class="btn btn-outline-warning text-dark fw-semibold d-flex align-items-center gap-1 shadow-sm btn-sm px-3"
-          (click)="abrirModalCambiarEstado()"
-        >
-          <i class="bi bi-arrow-left-right fs-5"></i>
-          <span>Cambiar Estado</span>
-        </button>
+        @if (usuarioSesion.rol === 'Administrador' || usuarioSesion.rol === 'Agente') {
+          <button
+            class="btn btn-outline-warning text-dark fw-semibold d-flex align-items-center gap-1 shadow-sm btn-sm px-3"
+            (click)="abrirModalCambiarEstado()"
+          >
+            <i class="bi bi-arrow-left-right fs-5"></i>
+            <span>Cambiar Estado</span>
+          </button>
+        }
 
         <button
           class="btn btn-primary fw-semibold d-flex align-items-center gap-1 shadow-sm btn-sm px-3"
@@ -46,13 +60,15 @@
           <span>Comentar</span>
         </button>
 
-        <button
-          class="btn btn-danger fw-semibold d-flex align-items-center gap-1 shadow-sm btn-sm px-3"
-          (click)="abrirModalCerrarTicket()"
-        >
-          <i class="bi bi-lock fs-5"></i>
-          <span>Cerrar Ticket</span>
-        </button>
+        @if (usuarioSesion.rol === 'Administrador') {
+          <button
+            class="btn btn-danger fw-semibold d-flex align-items-center gap-1 shadow-sm btn-sm px-3"
+            (click)="abrirModalCerrarTicket()"
+          >
+            <i class="bi bi-lock fs-5"></i>
+            <span>Cerrar Ticket</span>
+          </button>
+        }
       </div>
     }
   </div>
@@ -100,7 +116,7 @@
           <div class="mb-3 pb-2 border-bottom d-flex justify-content-between align-items-center">
             <label class="text-muted small fw-bold text-uppercase mb-0">Prioridad</label>
             <span
-              class="badge px-2.5 py-1.5"
+              class="badge px-3 py-2 text-uppercase font-monospace"
               [ngClass]="{
                 'bg-danger': ticket.prioridad?.nombre === 'Crítica',
                 'bg-warning text-dark': ticket.prioridad?.nombre === 'Alta',
@@ -114,49 +130,49 @@
 
           <div class="mb-3 pb-2 border-bottom">
             <label class="text-muted small d-block fw-bold text-uppercase">Solicitante</label>
-            <span class="text-dark"
-              ><i class="bi bi-person me-1"></i
-              >{{ ticket.usuarioSolicitante?.username || 'Sin usuario' }}</span
-            >
+            <span class="text-dark">
+              <i class="bi bi-person me-1"></i
+              >{{ ticket.usuarioSolicitante?.username || 'Sin usuario' }}
+            </span>
           </div>
 
           <div class="mb-3 pb-2 border-bottom">
             <label class="text-muted small d-block fw-bold text-uppercase">Agente Asignado</label>
             @if (ticket.agenteAsignado) {
-              <span class="badge bg-light text-dark border"
-                ><i class="bi bi-person-badge me-1"></i>{{ ticket.agenteAsignado?.username }}</span
-              >
+              <span class="badge bg-light text-dark border">
+                <i class="bi bi-person-badge me-1"></i>{{ ticket.agenteAsignado?.username }}
+              </span>
             } @else {
-              <span class="text-muted small style-italic"
-                ><i class="bi bi-dash-circle me-1"></i>Sin asignar</span
-              >
+              <span class="text-muted small fst-italic">
+                <i class="bi bi-dash-circle me-1"></i>Sin asignar
+              </span>
             }
           </div>
 
           <div class="row mb-4">
             <div class="col-6">
               <label class="text-muted small d-block fw-bold text-uppercase">Creado el</label>
-              <small class="text-dark"
-                ><i class="bi bi-calendar3 me-1"></i
-                >{{ ticket.FechaCreacion | date: 'dd/MM/yyyy HH:mm' }}</small
-              >
+              <small class="text-dark">
+                <i class="bi bi-calendar3 me-1"></i
+                >{{ ticket.FechaCreacion | date: 'dd/MM/yyyy HH:mm' }}
+              </small>
             </div>
             <div class="col-6">
               <label class="text-muted small d-block fw-bold text-uppercase"
                 >Última Actualización</label
               >
-              <small class="text-muted"
-                ><i class="bi bi-clock-history me-1"></i
-                >{{ ticket.FechaActualizacion | date: 'dd/MM/yyyy HH:mm' }}</small
-              >
+              <small class="text-muted">
+                <i class="bi bi-clock-history me-1"></i
+                >{{ ticket.FechaActualizacion | date: 'dd/MM/yyyy HH:mm' }}
+              </small>
             </div>
           </div>
 
           <div class="bg-light p-3 rounded border">
-            <label class="text-muted small d-block fw-bold text-uppercase mb-2"
-              ><i class="bi bi-chat-left-text me-1"></i>Descripción</label
-            >
-            <p class="mb-0 text-dark whitespace-pre-line" style="font-size: 0.95rem">
+            <label class="text-muted small d-block fw-bold text-uppercase mb-2">
+              <i class="bi bi-chat-left-text me-1"></i>Descripción
+            </label>
+            <p class="mb-0 text-dark" style="font-size: 0.95rem; white-space: pre-line">
               {{ ticket.descripcion }}
             </p>
           </div>
@@ -166,7 +182,7 @@
 
     <div class="col-md-7 d-flex flex-column gap-4">
       <div class="card shadow-sm">
-        <div class="card-header bg-secondary text-white py-2.5">
+        <div class="card-header bg-secondary text-white py-3">
           <h6 class="card-title mb-0 fw-semibold">
             <i class="bi bi-clock-history me-2"></i>Historial de Cambios
           </h6>
@@ -182,13 +198,10 @@
 
                     @if (cambio.estadoAnterior.idEstado !== cambio.estadoActual.idEstado) {
                       <span class="text-muted"> cambió el estado: </span>
-
                       <span class="badge bg-light text-secondary mx-1 border">
                         {{ cambio.estadoAnterior.nombre }}
                       </span>
-
                       <i class="bi bi-arrow-right text-muted mx-1"></i>
-
                       <span class="badge bg-light text-primary mx-1 border">
                         {{ cambio.estadoActual.nombre }}
                       </span>
@@ -197,8 +210,7 @@
                     @if (cambio.descripcionCambio) {
                       <div class="mt-2">
                         <small class="text-muted">
-                          <i class="bi bi-chat-left-text me-1"></i>
-                          {{ cambio.descripcionCambio }}
+                          <i class="bi bi-chat-left-text me-1"></i>{{ cambio.descripcionCambio }}
                         </small>
                       </div>
                     }
@@ -211,7 +223,6 @@
                       </div>
                     }
                   </div>
-
                   <small class="text-muted font-monospace" style="font-size: 0.8rem">
                     {{ cambio.fechaActualizaciion | date: 'dd/MM/yyyy HH:mm' }}
                   </small>
@@ -219,51 +230,50 @@
               </li>
             } @empty {
               <div class="p-4 text-center text-muted small">
-                <i class="bi bi-info-circle me-1"></i>
-                No hay movimientos registrados.
+                <i class="bi bi-info-circle me-1"></i>No hay movimientos registrados.
               </div>
             }
           </ul>
         </div>
+      </div>
 
-        <div class="card shadow-sm flex-grow-1">
-          <div class="card-header bg-light py-2.5 border-bottom">
-            <h6 class="card-title mb-0 fw-semibold text-dark">
-              <i class="bi bi-chat-square-dots me-2 text-info"></i>Comentarios
-            </h6>
-          </div>
-          <div class="card-body" style="max-height: 350px; overflow-y: auto">
-            @for (comentario of comentarios; track comentario.idComentario) {
-              @let esMiMensaje = comentario.usuario?.username === username;
+      <div class="card shadow-sm flex-grow-1">
+        <div class="card-header bg-light py-3 border-bottom">
+          <h6 class="card-title mb-0 fw-semibold text-dark">
+            <i class="bi bi-chat-square-dots me-2 text-info"></i>Comentarios
+          </h6>
+        </div>
+        <div class="card-body" style="max-height: 350px; overflow-y: auto">
+          @for (comentario of comentarios; track comentario.idComentario) {
+            @let esMiMensaje = comentario.usuario?.username === username;
 
-              <div class="d-flex mb-2" [class.justify-content-end]="esMiMensaje">
-                <div
-                  class="rounded p-3 border-3 shadow-xs"
-                  style="max-width: 75%"
-                  [ngClass]="{
-                    'bg-success-subtle border-end border-success text-end': esMiMensaje,
-                    'bg-light border-start border-info': !esMiMensaje,
-                  }"
-                >
-                  <div class="d-flex justify-content-between align-items-center mb-1 gap-3">
-                    <strong class="text-dark small">
-                      <i class="bi bi-person me-1"></i>
-                      {{ esMiMensaje ? 'Tú' : comentario.usuario?.username }}
-                    </strong>
-                    <small class="text-muted style-italic" style="font-size: 0.8rem">
-                      <i class="bi bi-calendar-event me-1"></i>
-                      {{ comentario.Fecha | date: 'dd/MM/yyyy HH:mm' }}
-                    </small>
-                  </div>
-                  <p class="mb-0 text-secondary small text-start">{{ comentario.mensaje }}</p>
+            <div class="d-flex mb-2" [class.justify-content-end]="esMiMensaje">
+              <div
+                class="rounded p-3 border-3 shadow-xs"
+                style="max-width: 75%"
+                [ngClass]="{
+                  'bg-success-subtle border-end border-success text-end': esMiMensaje,
+                  'bg-light border-start border-info': !esMiMensaje,
+                }"
+              >
+                <div class="d-flex justify-content-between align-items-center mb-1 gap-3">
+                  <strong class="text-dark small">
+                    <i class="bi bi-person me-1"></i
+                    >{{ esMiMensaje ? 'Tú' : comentario.usuario?.username }}
+                  </strong>
+                  <small class="text-muted fst-italic" style="font-size: 0.8rem">
+                    <i class="bi bi-calendar-event me-1"></i
+                    >{{ comentario.Fecha | date: 'dd/MM/yyyy HH:mm' }}
+                  </small>
                 </div>
+                <p class="mb-0 text-secondary small text-start">{{ comentario.mensaje }}</p>
               </div>
-            } @empty {
-              <div class="text-center text-muted py-4 italic small">
-                <i class="bi bi-chat-left-x me-1"></i>No existen comentarios para este ticket.
-              </div>
-            }
-          </div>
+            </div>
+          } @empty {
+            <div class="text-center text-muted py-4 fst-italic small">
+              <i class="bi bi-chat-left-x me-1"></i>No existen comentarios para este ticket.
+            </div>
+          }
         </div>
       </div>
     </div>

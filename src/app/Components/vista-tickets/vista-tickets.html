@@ -1,25 +1,43 @@
 <div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-    <aside class="sidebar">
-      <app-user-badge-component [usuario]="usuarioSesion"></app-user-badge-component>
-    </aside>
-    <h2 class="fw-bold text-secondary mb-0">
-      <i class="bi bi-ticket-perforated me-2 text-primary"></i>Listado de Tickets
-    </h2>
+  <aside class="sidebar">
+    <app-user-badge-component [usuario]="usuarioSesion"></app-user-badge-component>
+  </aside>
+  <div
+    class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-2 border-bottom"
+  >
+    <div class="d-flex align-items-center gap-2">
+      <h2 class="fw-bold text-secondary mb-0">
+        <i class="bi bi-ticket-perforated me-2 text-primary"></i>
+        
+        @if (usuarioSesion.rol === 'Administrador') {
+          <span>Listado de Tickets: Todos los tickets</span>
+        } @else if (usuarioSesion.rol === 'Agente') {
+          <span>Listado de Tickets: Mis tickets asignados</span>
+        } @else if (usuarioSesion.rol === 'Usuario') {
+          <span>Listado de Tickets: Mis Tickets</span>
+        } @else {
+          <span>Listado de Tickets</span>
+        }
+      </h2>
+    </div>
 
-    <button
-      class="btn btn-primary fw-semibold d-flex align-items-center gap-2 shadow-sm"
-      (click)="irReporte()"
-    >
-      <i class="bi bi-plus-lg fs-5"></i>
-      <span>Levantar Reporte</span>
-    </button>
+    <div class="d-flex justify-content-end align-items-center">
+      <button
+        class="btn btn-primary fw-semibold d-flex align-items-center gap-2 shadow-sm py-2"
+        (click)="irReporte()"
+      >
+        <i class="bi bi-plus-lg fs-5"></i>
+        <span>Levantar Reporte</span>
+      </button>
+    </div>
   </div>
 
-  <div class="row mb-3">
+  <div class="row g-3 mb-4">
     <div class="col-md-4">
-      <label class="form-label fw-semibold">Filtrar por Estado</label>
-      <select class="form-select" [(ngModel)]="estadoFiltro" (change)="aplicarFiltros()">
+      <label class="form-label fw-semibold text-secondary small text-uppercase"
+        >Filtrar por Estado</label
+      >
+      <select class="form-select shadow-sm" [(ngModel)]="estadoFiltro" (change)="aplicarFiltros()">
         <option value="">Todos los estados</option>
         @for (estado of estados; track estado.idEstado) {
           <option [value]="estado.nombre">
@@ -30,8 +48,14 @@
     </div>
 
     <div class="col-md-4">
-      <label class="form-label fw-semibold">Filtrar por Prioridad</label>
-      <select class="form-select" [(ngModel)]="prioridadFiltro" (change)="aplicarFiltros()">
+      <label class="form-label fw-semibold text-secondary small text-uppercase"
+        >Filtrar por Prioridad</label
+      >
+      <select
+        class="form-select shadow-sm"
+        [(ngModel)]="prioridadFiltro"
+        (change)="aplicarFiltros()"
+      >
         <option value="">Todas las prioridades</option>
         @for (prioridad of prioridades; track prioridad.idPrioridad) {
           <option [value]="prioridad.nombre">
@@ -42,7 +66,7 @@
     </div>
 
     <div class="col-md-4 d-flex align-items-end">
-      <button class="btn btn-outline-secondary w-100" (click)="limpiarFiltros()">
+      <button class="btn btn-outline-secondary w-100 shadow-sm" (click)="limpiarFiltros()">
         <i class="bi bi-x-circle me-1"></i>
         Limpiar filtros
       </button>
@@ -50,11 +74,13 @@
   </div>
 
   @if (tickets.length === 0) {
-    <div class="d-flex flex-column align-items-center my-5">
+    <div
+      class="d-flex flex-column align-items-center my-5 py-5 bg-light rounded border border-dashed"
+    >
       <div class="spinner-border text-primary mb-3" role="status">
         <span class="visually-hidden">Cargando...</span>
       </div>
-      <p class="text-muted">Cargando tickets o no hay registros disponibles...</p>
+      <p class="text-muted fw-medium">Cargando tickets o no hay registros disponibles...</p>
     </div>
   } @else {
     <div class="table-responsive shadow-sm rounded border bg-white">
@@ -71,7 +97,7 @@
             <th scope="col" class="py-3">Asignado a</th>
             <th scope="col" class="py-3">Creado el</th>
             <th scope="col" class="py-3">Última Actualización</th>
-            <th scope="col" class="py-3" style="min-width: 150px">Acciones</th>
+            <th scope="col" class="py-3" style="min-width: 120px">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -79,14 +105,14 @@
             <tr>
               <td class="fw-bold text-primary">#{{ ticket.idTicket }}</td>
               <td class="text-start">
-                <div class="fw-semibold text-dark">{{ ticket.titulo }}</div>
+                <div class="fw-semibold text-dark mb-0.5">{{ ticket.titulo }}</div>
                 <div class="text-muted small text-truncate" style="max-width: 300px">
                   {{ ticket.descripcion }}
                 </div>
               </td>
               <td>
                 <span
-                  class="badge px-2.5 py-1.5"
+                  class="badge px-3 py-2 text-uppercase font-monospace"
                   [ngClass]="{
                     'bg-danger text-light': ticket.prioridad?.nombre === 'Crítica',
                     'bg-warning text-dark': ticket.prioridad?.nombre === 'Alta',
@@ -120,22 +146,22 @@
                   {{ ticket.estado?.nombre }}
                 </span>
               </td>
-              <td class="text-muted">
+              <td class="text-muted small">
                 <i class="bi bi-person me-1"></i>{{ ticket.usuarioSolicitante?.username }}
               </td>
               <td>
                 @if (ticket.agenteAsignado) {
-                  <span class="fw-medium text-dark">
+                  <span class="badge bg-light text-dark border fw-medium px-2.5 py-1.5">
                     <i class="bi bi-person-badge text-secondary me-1"></i
                     >{{ ticket.agenteAsignado.username }}
                   </span>
                 } @else {
-                  <span class="text-muted style-italic small">
+                  <span class="text-muted fst-italic small">
                     <i class="bi bi-dash-circle me-1"></i>Sin asignar
                   </span>
                 }
               </td>
-              <td class="small">
+              <td class="small text-secondary">
                 <i class="bi bi-calendar3 me-1 text-muted"></i
                 >{{ ticket.FechaCreacion | date: 'dd/MM/yyyy HH:mm' }}
               </td>
@@ -145,8 +171,11 @@
               </td>
               <td>
                 <div class="d-flex gap-2 justify-content-center align-items-center">
-                  <button class="btn btn-outline-info btn-sm px-3" (click)="verDetalle(ticket)">
-                    <i class="bi bi-eye me-1"></i> Ver
+                  <button
+                    class="btn btn-outline-info btn-sm px-3 fw-semibold d-flex align-items-center gap-1"
+                    (click)="verDetalle(ticket)"
+                  >
+                    <i class="bi bi-eye"></i> Ver
                   </button>
                 </div>
               </td>
