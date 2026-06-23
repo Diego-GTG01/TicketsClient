@@ -12,6 +12,7 @@ export interface Ticket {
     agenteAsignado?: Usuario,
     prioridad?: Prioridad;
     estado?: EstadoTicket
+    status: number
 
 
 }

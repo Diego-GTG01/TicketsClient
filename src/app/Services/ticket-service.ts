@@ -35,7 +35,31 @@ export class TicketService {
     return this.http.post<Result<Ticket>>(this.apiEndpoint + '/tickets', ticket);
   }
 
-  update(idTicket: number, idAgente: number): Observable<Result<Ticket>> {
-    return this.http.patch(this.apiEndpoint);
+  updateAgente(idTicket: number, idAgente: number): Observable<Result<Ticket>> {
+    return this.http.patch<Result<Ticket>>(
+      this.apiEndpoint + '/tickets/assignTo?idTicket=' + idTicket + '&idAgenteAsignado=' + idAgente,
+      null,
+    );
+  }
+
+  updateEstado(ticket: Ticket): Observable<Result<Ticket>> {
+    return this.http.patch<Result<Ticket>>(
+      this.apiEndpoint + '/tickets/estado?idTicket=' + ticket.idTicket + '&estado=' + ticket.estado?.idEstado,
+      null,
+    );
+  }
+
+  updateStatus(idTicket: number, status: number): Observable<Result<Ticket>> {
+    return this.http.patch<Result<Ticket>>(
+      this.apiEndpoint + '/tickets/status?idTicket=' + idTicket + '&status=' + status,
+      null,
+    );
+  }
+
+  updatePrioridad(idTicket: number, prioridad: number): Observable<Result<Ticket>> {
+    return this.http.patch<Result<Ticket>>(
+      this.apiEndpoint + '/tickets/prioridad?idTicket=' + idTicket + '&idPrioridad=' + prioridad,
+      null,
+    );
   }
 }

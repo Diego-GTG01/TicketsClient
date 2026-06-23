@@ -14,6 +14,8 @@ import { EstadoTicket } from '../../Interfaces/estado-ticket';
 import { EstadoService } from '../../Services/estado-service';
 import { UserBadgeComponent } from '../user-badge-component/user-badge-component';
 import { AgentService } from '../../Services/agent-service';
+import { PrioridadService } from '../../Services/prioridad-service';
+import { Prioridad } from '../../Interfaces/prioridad';
 
 @Component({
   selector: 'app-vista-detalle-ticket',
@@ -57,6 +59,7 @@ export class VistaDetalleTicket implements OnInit {
     },
     prioridad: { idPrioridad: 0, nombre: '' },
     estado: { idEstado: 0, nombre: '' },
+    status: 0,
   };
 
   comentarios: Comentario[] = [];
@@ -83,8 +86,7 @@ export class VistaDetalleTicket implements OnInit {
     Fecha: new Date(),
   };
 
-  agentesDisponibles: any[] = [
-  ];
+  agentesDisponibles: any[] = [];
 
   estadosDisponibles: EstadoTicket[] = [];
   estadosDisponiblesParaCambio: EstadoTicket[] = [];
@@ -94,6 +96,8 @@ export class VistaDetalleTicket implements OnInit {
   username: string | null = null;
   idUsuario: number | null = null;
 
+  public prioridades: Prioridad[] = [];
+
   constructor(
     private ticketService: TicketService,
     private comentarioService: ComentarioService,
@@ -101,6 +105,7 @@ export class VistaDetalleTicket implements OnInit {
     private authService: AuthService,
     private estadoService: EstadoService,
     private agentService: AgentService,
+    private prioridadService: PrioridadService,
   ) {}
 
   ngOnInit(): void {
@@ -123,6 +128,8 @@ export class VistaDetalleTicket implements OnInit {
       this.cargarDatosTicket();
       this.cargarEstados();
       this.cargarAgentes();
+      this.cargarPrioridades();
+      
     }
   }
 
@@ -130,6 +137,7 @@ export class VistaDetalleTicket implements OnInit {
     this.ticketService.getById(this.ticket.idTicket).subscribe({
       next: (result) => {
         this.ticket = result.object;
+        console.log(this.ticket);
         this.cargarComentarios();
         this.cargarHistorial();
       },
@@ -138,14 +146,13 @@ export class VistaDetalleTicket implements OnInit {
   }
 
   cargarAgentes(): void {
-    this.agentService.getAllUsers("Agente").subscribe({
-     
+    this.agentService.getAllUsers('Agente').subscribe({
       next: (result) => {
-         console.log(result)
-         this.agentesDisponibles= result.objects
+        console.log(result);
+        this.agentesDisponibles = result.objects;
       },
       error: (error) => {
-        console.error(error)
+        console.error(error);
       },
     });
   }
@@ -159,6 +166,22 @@ export class VistaDetalleTicket implements OnInit {
           this.estadosDisponiblesParaCambio = this.estadosDisponibles.filter(
             (item) => item.nombre !== 'Cerrado',
           );
+        } else {
+          console.log(result);
+        }
+      },
+      error: (err) => {
+        console.log(err);
+      },
+    });
+  }
+
+  cargarPrioridades(): void {
+    this.prioridadService.getAll().subscribe({
+      next: (result) => {
+        if (result.correct) {
+          console.log(result);
+          this.prioridades = result.objects.flat();
         } else {
           console.log(result);
         }
@@ -186,7 +209,6 @@ export class VistaDetalleTicket implements OnInit {
     this.historialService.getHistorialById(this.ticket.idTicket).subscribe({
       next: (result) => {
         console.log(result);
-        // Ordenar el historial de más viejo a más nuevo
         this.historial = result.objects.sort((a, b) => {
           const fechaA = new Date(a.fechaActualizaciion).getTime();
           const fechaB = new Date(b.fechaActualizaciion).getTime();
@@ -226,19 +248,20 @@ export class VistaDetalleTicket implements OnInit {
   }
 
   private ejecutarAsignacionBackend(idAgente: number): void {
-    const ticketActualizado = { ...this.ticket };
-    ticketActualizado.agenteAsignado = { idUsuario: idAgente } as any;
-
-    // this.ticketService.update(ticketActualizado).subscribe({
-    //   next: () => {
-    //     Swal.fire('¡Asignado!', 'El agente ha sido asignado con éxito.', 'success');
-    //     this.cargarDatosTicket();
-    //   },
-    //   error: (err) => {
-    //     console.error(err);
-    //     Swal.fire('Error', 'No se pudo asignar el agente.', 'error');
-    //   }
-    // });
+    this.ticketService.updateAgente(this.ticket.idTicket, idAgente).subscribe({
+      next: (result) => {
+        if (result.correct) {
+          Swal.fire('¡Asignado!', 'El agente ha sido asignado con éxito.', 'success');
+          this.cargarDatosTicket();
+        } else {
+          Swal.fire('Error', 'No se pudo asignar el agente.', 'error');
+        }
+      },
+      error: (err) => {
+        console.error(err);
+        Swal.fire('Error', 'No se pudo asignar el agente.', 'error');
+      },
+    });
   }
 
   abrirModalCambiarEstado(): void {
@@ -449,6 +472,58 @@ export class VistaDetalleTicket implements OnInit {
       },
       error: () => {
         Swal.fire('Error', 'No se pudo guardar el comentario en el historial.', 'error');
+      },
+    });
+  }
+
+  abrirModalCambiarPrioridad(): void {
+    const opcionesPrioridades: { [key: string]: string } = {};
+    this.prioridades.forEach((p) => {
+      opcionesPrioridades[p.idPrioridad] = p.nombre;
+    });
+
+    Swal.fire({
+      title: 'Cambiar Prioridad del Ticket',
+      input: 'select',
+      inputOptions: opcionesPrioridades,
+      inputPlaceholder: 'Seleccione la nueva prioridad...',
+      showCancelButton: true,
+      confirmButtonText: 'Actualizar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#ffc107',
+      cancelButtonColor: '#6c757d',
+      inputValidator: (value) => {
+        if (!value) return 'Debes elegir una prioridad';
+        return null;
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.ejecutarCambioPrioridadBackend(Number(result.value));
+      }
+    });
+  }
+
+  private ejecutarCambioPrioridadBackend(idPrioridad: number): void {
+    const prioridadSeleccionada = this.prioridades.find(
+      (p) => p.idPrioridad === idPrioridad,
+    );
+    if (!prioridadSeleccionada) {
+      Swal.fire('Error', 'No se encontró la prioridad seleccionada.', 'error');
+      return;
+    }
+
+    this.ticketService.updatePrioridad(this.ticket.idTicket, idPrioridad).subscribe({
+      next: (result) => {
+        Swal.fire(
+          '¡Actualizado!',
+          `La prioridad ha cambiado a "${prioridadSeleccionada.nombre}".`,
+          'success',
+        );
+        this.cargarDatosTicket(); 
+      },
+      error: (err) => {
+        console.error(err);
+        Swal.fire('Error', 'No se pudo actualizar la prioridad.', 'error');
       },
     });
   }

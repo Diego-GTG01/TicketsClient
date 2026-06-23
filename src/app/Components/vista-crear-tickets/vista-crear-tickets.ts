@@ -28,6 +28,7 @@ export class VistaCrearTickets implements OnInit {
     descripcion: '',
     agenteAsignado: undefined,
     prioridad: undefined,
+    status: 1
   };
 
   ticketForm: FormGroup;
@@ -124,6 +125,7 @@ export class VistaCrearTickets implements OnInit {
           descripcion: '',
           agenteAsignado: undefined,
           prioridad: undefined,
+          status: 1
         };
         this.router.navigate(['/tickets']);
       },

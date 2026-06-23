@@ -2,19 +2,19 @@
   <aside class="sidebar">
     <app-user-badge-component [usuario]="usuarioSesion"></app-user-badge-component>
   </aside>
+
   <div
     class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-2 border-bottom"
   >
     <div class="d-flex align-items-center gap-2">
       <h2 class="fw-bold text-secondary mb-0">
         <i class="bi bi-ticket-perforated me-2 text-primary"></i>
-        
         @if (usuarioSesion.rol === 'Administrador') {
-          <span>Listado de Tickets: Todos los tickets</span>
+          <span>Listado de Tickets</span>
         } @else if (usuarioSesion.rol === 'Agente') {
-          <span>Listado de Tickets: Mis tickets asignados</span>
+          <span> Mis tickets asignados</span>
         } @else if (usuarioSesion.rol === 'Usuario') {
-          <span>Listado de Tickets: Mis Tickets</span>
+          <span> Mis Tickets</span>
         } @else {
           <span>Listado de Tickets</span>
         }
@@ -32,157 +32,269 @@
     </div>
   </div>
 
-  <div class="row g-3 mb-4">
-    <div class="col-md-4">
-      <label class="form-label fw-semibold text-secondary small text-uppercase"
-        >Filtrar por Estado</label
-      >
-      <select class="form-select shadow-sm" [(ngModel)]="estadoFiltro" (change)="aplicarFiltros()">
-        <option value="">Todos los estados</option>
-        @for (estado of estados; track estado.idEstado) {
-          <option [value]="estado.nombre">
-            {{ estado.nombre }}
-          </option>
-        }
-      </select>
-    </div>
+  @if (usuarioSesion.rol === 'Administrador') {
+    <ul class="nav nav-tabs mb-4">
+      <li class="nav-item">
+        <button
+          class="nav-link fw-semibold"
+          [class.active]="tabActiva === 1"
+          (click)="cambiarTab(1)"
+        >
+          <i class="bi bi-inbox me-1"></i> Recibido
+        </button>
+      </li>
+      <li class="nav-item">
+        <button
+          class="nav-link fw-semibold"
+          [class.active]="tabActiva === 2"
+          (click)="cambiarTab(2)"
+        >
+          <i class="bi bi-search me-1"></i> Aceptado
+        </button>
+      </li>
+      <li class="nav-item">
+        <button
+          class="nav-link fw-semibold"
+          [class.active]="tabActiva === 3"
+          (click)="cambiarTab(3)"
+        >
+          <i class="bi bi-x-circle me-1"></i> Rechazado
+        </button>
+      </li>
+    </ul>
+  }
 
-    <div class="col-md-4">
-      <label class="form-label fw-semibold text-secondary small text-uppercase"
-        >Filtrar por Prioridad</label
-      >
-      <select
-        class="form-select shadow-sm"
-        [(ngModel)]="prioridadFiltro"
-        (change)="aplicarFiltros()"
-      >
-        <option value="">Todas las prioridades</option>
-        @for (prioridad of prioridades; track prioridad.idPrioridad) {
-          <option [value]="prioridad.nombre">
-            {{ prioridad.nombre }}
-          </option>
-        }
-      </select>
-    </div>
+  @if (usuarioSesion.rol !== 'Administrador' || tabActiva === 2) {
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <label class="form-label fw-semibold text-secondary small text-uppercase"
+          >Filtrar por Estado</label
+        >
+        <select
+          class="form-select shadow-sm"
+          [(ngModel)]="estadoFiltro"
+          (change)="aplicarFiltros()"
+        >
+          <option value="">Todos los estados</option>
+          @for (estado of estados; track estado.idEstado) {
+            <option [value]="estado.nombre">
+              {{ estado.nombre }}
+            </option>
+          }
+        </select>
+      </div>
 
-    <div class="col-md-4 d-flex align-items-end">
-      <button class="btn btn-outline-secondary w-100 shadow-sm" (click)="limpiarFiltros()">
-        <i class="bi bi-x-circle me-1"></i>
-        Limpiar filtros
-      </button>
-    </div>
-  </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold text-secondary small text-uppercase"
+          >Filtrar por Prioridad</label
+        >
+        <select
+          class="form-select shadow-sm"
+          [(ngModel)]="prioridadFiltro"
+          (change)="aplicarFiltros()"
+        >
+          <option value="">Todas las prioridades</option>
+          @for (prioridad of prioridades; track prioridad.idPrioridad) {
+            <option [value]="prioridad.nombre">
+              {{ prioridad.nombre }}
+            </option>
+          }
+        </select>
+      </div>
 
-  @if (tickets.length === 0) {
+      <div class="col-md-4 d-flex align-items-end">
+        <button class="btn btn-outline-secondary w-100 shadow-sm" (click)="limpiarFiltros()">
+          <i class="bi bi-x-circle me-1"></i>
+          Limpiar filtros
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (ticketsFiltrados.length === 0) {
     <div
       class="d-flex flex-column align-items-center my-5 py-5 bg-light rounded border border-dashed"
     >
-      <div class="spinner-border text-primary mb-3" role="status">
-        <span class="visually-hidden">Cargando...</span>
-      </div>
-      <p class="text-muted fw-medium">Cargando tickets o no hay registros disponibles...</p>
+      <p class="text-muted fw-medium mb-0">
+        No se encontraron tickets en esta sección o están cargando...
+      </p>
     </div>
   } @else {
-    <div class="table-responsive shadow-sm rounded border bg-white">
-      <table class="table table-hover align-middle mb-0 text-center">
-        <thead class="table-dark text-uppercase fs-7 small">
-          <tr>
-            <th scope="col" class="py-3">ID</th>
-            <th scope="col" class="py-3 text-start" style="min-width: 250px">
-              Título / Descripción
-            </th>
-            <th scope="col" class="py-3">Prioridad</th>
-            <th scope="col" class="py-3">Estado</th>
-            <th scope="col" class="py-3">Solicitante</th>
-            <th scope="col" class="py-3">Asignado a</th>
-            <th scope="col" class="py-3">Creado el</th>
-            <th scope="col" class="py-3">Última Actualización</th>
-            <th scope="col" class="py-3" style="min-width: 120px">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (ticket of ticketsFiltrados; track ticket.idTicket) {
-            <tr>
-              <td class="fw-bold text-primary">#{{ ticket.idTicket }}</td>
-              <td class="text-start">
-                <div class="fw-semibold text-dark mb-0.5">{{ ticket.titulo }}</div>
-                <div class="text-muted small text-truncate" style="max-width: 300px">
-                  {{ ticket.descripcion }}
-                </div>
-              </td>
-              <td>
+    @if (usuarioSesion.rol === 'Administrador' && tabActiva === 1) {
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @for (ticket of ticketsFiltrados; track ticket.idTicket) {
+          <div class="col">
+            <div class="card h-100 shadow-sm border-light d-flex flex-column">
+              <div
+                class="card-header bg-light d-flex justify-content-between align-items-center py-2.5"
+              >
+                <span class="fw-bold text-primary">#{{ ticket.idTicket }}</span>
                 <span
-                  class="badge px-3 py-2 text-uppercase font-monospace"
+                  class="badge px-2.5 py-1.5 text-uppercase font-monospace"
                   [ngClass]="{
                     'bg-danger text-light': ticket.prioridad?.nombre === 'Crítica',
                     'bg-warning text-dark': ticket.prioridad?.nombre === 'Alta',
-                    'bg-info text-dark': ticket.prioridad?.nombre === 'Media',
+                    'bg-info text-light': ticket.prioridad?.nombre === 'Media',
                     'bg-success text-light': ticket.prioridad?.nombre === 'Baja',
                   }"
                 >
                   {{ ticket.prioridad?.nombre }}
                 </span>
-              </td>
-              <td>
-                <span
-                  class="badge rounded-pill px-3 py-2 text-uppercase font-monospace fs-8"
-                  [ngClass]="{
-                    'bg-primary text-light': ticket.estado?.nombre === 'Abierto',
-                    'bg-warning text-dark': ticket.estado?.nombre?.trim() === 'En Proceso',
-                    'bg-success text-light': ticket.estado?.nombre === 'Resuelto',
-                    'bg-secondary text-light': ticket.estado?.nombre === 'Cerrado',
-                  }"
+              </div>
+
+              <div class="card-body d-flex flex-column flex-grow-1">
+                <h5 class="card-title fw-bold text-dark">{{ ticket.titulo }}</h5>
+
+                <p
+                  class="card-text text-muted small"
+                  style="
+                    display: -webkit-box;
+                    -webkit-line-clamp: 3;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                  "
                 >
-                  <i
-                    class="bi me-1"
+                  {{ ticket.descripcion }}
+                </p>
+
+                <div class="mt-auto pt-2 border-top extra-info small text-muted">
+                  <div class="mb-1">
+                    <i class="bi bi-person me-1"></i><strong>Solicitante:</strong>
+                    {{ ticket.usuarioSolicitante?.username }}
+                  </div>
+                  <div>
+                    <i class="bi bi-calendar3 me-1"></i><strong>Fecha:</strong>
+                    {{ ticket.FechaCreacion | date: 'dd/MM/yyyy HH:mm' }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="card-footer bg-white d-flex gap-2 border-top-0 pb-3">
+                <button
+                  class="btn btn-success btn-sm flex-grow-1 fw-semibold"
+                  (click)="aceptarTicket(ticket)"
+                >
+                  <i class="bi bi-check-lg"></i> Aceptar
+                </button>
+                <button
+                  class="btn btn-danger btn-sm flex-grow-1 fw-semibold"
+                  (click)="rechazarTicket(ticket)"
+                >
+                  <i class="bi bi-x-lg"></i> Rechazar
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="table-responsive shadow-sm rounded border bg-white">
+        <table class="table table-hover align-middle mb-0 text-center">
+          <thead class="table-dark text-uppercase fs-7 small">
+            <tr>
+              <th scope="col" class="py-3">ID</th>
+              <th scope="col" class="py-3 text-start" style="min-width: 250px">
+                Título / Descripción
+              </th>
+              <th scope="col" class="py-3">Prioridad</th>
+              <th scope="col" class="py-3">Estado</th>
+              <th scope="col" class="py-3">Solicitante</th>
+              <th scope="col" class="py-3">Asignado a</th>
+              <th scope="col" class="py-3">Creado el</th>
+              <th scope="col" class="py-3" style="min-width: 120px">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (ticket of ticketsFiltrados; track ticket.idTicket) {
+              <tr>
+                <td class="fw-bold text-primary">#{{ ticket.idTicket }}</td>
+                <td class="text-start">
+                  <div class="fw-semibold text-dark mb-0.5">{{ ticket.titulo }}</div>
+                  <div class="text-muted small text-truncate" style="max-width: 300px">
+                    {{ ticket.descripcion }}
+                  </div>
+                </td>
+                <td>
+                  <span
+                    class="badge px-3 py-2 text-uppercase font-monospace"
                     [ngClass]="{
-                      'bi-folder2-open': ticket.estado?.nombre === 'Abierto',
-                      'bi-gear-wide-connected': ticket.estado?.nombre?.trim() === 'En Proceso',
-                      'bi-check-circle-fill': ticket.estado?.nombre === 'Resuelto',
-                      'bi-lock-fill': ticket.estado?.nombre === 'Cerrado',
+                      'bg-danger text-light': ticket.prioridad?.nombre === 'Crítica',
+                      'bg-warning text-light': ticket.prioridad?.nombre === 'Alta',
+                      'bg-info text-light': ticket.prioridad?.nombre === 'Media',
+                      'bg-success text-light': ticket.prioridad?.nombre === 'Baja',
                     }"
                   >
-                  </i>
-                  {{ ticket.estado?.nombre }}
-                </span>
-              </td>
-              <td class="text-muted small">
-                <i class="bi bi-person me-1"></i>{{ ticket.usuarioSolicitante?.username }}
-              </td>
-              <td>
-                @if (ticket.agenteAsignado) {
-                  <span class="badge bg-light text-dark border fw-medium px-2.5 py-1.5">
-                    <i class="bi bi-person-badge text-secondary me-1"></i
-                    >{{ ticket.agenteAsignado.username }}
+                    {{ ticket.prioridad?.nombre }}
                   </span>
-                } @else {
-                  <span class="text-muted fst-italic small">
-                    <i class="bi bi-dash-circle me-1"></i>Sin asignar
-                  </span>
-                }
-              </td>
-              <td class="small text-secondary">
-                <i class="bi bi-calendar3 me-1 text-muted"></i
-                >{{ ticket.FechaCreacion | date: 'dd/MM/yyyy HH:mm' }}
-              </td>
-              <td class="small text-muted">
-                <i class="bi bi-clock-history me-1"></i
-                >{{ ticket.FechaActualizacion | date: 'dd/MM/yyyy HH:mm' }}
-              </td>
-              <td>
-                <div class="d-flex gap-2 justify-content-center align-items-center">
-                  <button
-                    class="btn btn-outline-info btn-sm px-3 fw-semibold d-flex align-items-center gap-1"
-                    (click)="verDetalle(ticket)"
+                </td>
+                <td>
+                  <span
+                    class="badge rounded-pill px-3 py-2 text-uppercase font-monospace fs-8"
+                    [ngClass]="{
+                      'bg-primary text-light':
+                        ticket.estado?.nombre === 'Abierto' ||
+                        ticket.estado?.nombre === 'Aceptado' ||
+                        ticket.estado?.nombre === 'Recibido',
+                      'bg-warning text-light': ticket.estado?.nombre?.trim() === 'En Proceso' ||
+                        ticket.estado?.nombre === 'Pendiente',
+                      'bg-success text-light': ticket.estado?.nombre === 'Resuelto',
+                      'bg-secondary text-light':
+                        ticket.estado?.nombre === 'Cerrado' ||
+                        ticket.estado?.nombre === 'Rechazado',
+                    }"
                   >
-                    <i class="bi bi-eye"></i> Ver
-                  </button>
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+                    <i
+                      class="bi me-1"
+                      [ngClass]="{
+                        'bi-folder2-open':
+                          ticket.estado?.nombre === 'Abierto' ||
+                          ticket.estado?.nombre === 'Recibido' ||
+                          ticket.estado?.nombre === 'Aceptado',
+                        'bi-gear-wide-connected': ticket.estado?.nombre?.trim() === 'En Proceso',
+                        'bi-check-circle-fill': ticket.estado?.nombre === 'Resuelto',
+                        'bi-lock-fill':
+                          ticket.estado?.nombre === 'Cerrado' ||
+                          ticket.estado?.nombre === 'Rechazado',
+                      }"
+                    >
+                    </i>
+                    {{ ticket.estado?.nombre }}
+                  </span>
+                </td>
+                <td class="text-muted small">
+                  <i class="bi bi-person me-1"></i>{{ ticket.usuarioSolicitante?.username }}
+                </td>
+                <td>
+                  @if (ticket.agenteAsignado) {
+                    <span class="badge bg-light text-dark border fw-medium px-2.5 py-1.5">
+                      <i class="bi bi-person-badge text-secondary me-1"></i
+                      >{{ ticket.agenteAsignado.username }}
+                    </span>
+                  } @else {
+                    <span class="text-muted fst-italic small"
+                      ><i class="bi bi-dash-circle me-1"></i>Sin asignar</span
+                    >
+                  }
+                </td>
+                <td class="small text-secondary">
+                  <i class="bi bi-calendar3 me-1 text-muted"></i
+                  >{{ ticket.FechaCreacion | date: 'dd/MM/yyyy HH:mm' }}
+                </td>
+                <td>
+                  <div class="d-flex gap-2 justify-content-center align-items-center">
+                    <button
+                      class="btn btn-outline-info btn-sm px-3 fw-semibold d-flex align-items-center gap-1"
+                      (click)="verDetalle(ticket)"
+                    >
+                      <i class="bi bi-eye"></i> Ver
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
   }
 </div>

@@ -10,20 +10,25 @@
     </h2>
     <div
       class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-3"
-    >
-    </div>
+    ></div>
   </div>
 
   <div
     class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 pb-2 border-bottom gap-2"
   >
     <div></div>
-    
+
     @if (ticket.estado?.nombre !== 'Cerrado') {
       <div class="d-flex flex-wrap gap-2">
-        
         @if (usuarioSesion.rol === 'Administrador') {
           @if (ticket.agenteAsignado === null) {
+            <button
+              class="btn btn-outline-info text-dark fw-semibold d-flex align-items-center gap-1 shadow-sm btn-sm px-3"
+              (click)="abrirModalCambiarPrioridad()"
+            >
+              <i class="bi bi-exclamation-triangle fs-5"></i>
+              <span>Cambiar Prioridad</span>
+            </button>
             <button
               class="btn btn-outline-primary fw-semibold d-flex align-items-center gap-1 shadow-sm btn-sm px-3"
               (click)="abrirModalAsignar()"
@@ -95,6 +100,7 @@
               [ngClass]="{
                 'bg-primary text-light': ticket.estado?.nombre === 'Abierto',
                 'bg-warning text-light': ticket.estado?.nombre?.trim() === 'En Proceso',
+                
                 'bg-success text-light': ticket.estado?.nombre === 'Resuelto',
                 'bg-secondary text-light': ticket.estado?.nombre === 'Cerrado',
               }"
