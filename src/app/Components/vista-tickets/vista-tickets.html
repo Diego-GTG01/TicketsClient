@@ -21,7 +21,15 @@
       </h2>
     </div>
 
-    <div class="d-flex justify-content-end align-items-center">
+    <div class="d-flex justify-content-end align-items-center gap-3">
+      <button
+        class="btn btn-success fw-semibold d-flex align-items-center gap-2 shadow-sm py-2"
+        (click)="irUsuarios()"
+      >
+        <i class="bi bi-people-fill fs-5"></i>
+        <span>Gestionar Usuarios</span>
+      </button>
+
       <button
         class="btn btn-primary fw-semibold d-flex align-items-center gap-2 shadow-sm py-2"
         (click)="irReporte()"
@@ -235,7 +243,8 @@
                         ticket.estado?.nombre === 'Abierto' ||
                         ticket.estado?.nombre === 'Aceptado' ||
                         ticket.estado?.nombre === 'Recibido',
-                      'bg-warning text-light': ticket.estado?.nombre?.trim() === 'En Proceso' ||
+                      'bg-warning text-light':
+                        ticket.estado?.nombre?.trim() === 'En Proceso' ||
                         ticket.estado?.nombre === 'Pendiente',
                       'bg-success text-light': ticket.estado?.nombre === 'Resuelto',
                       'bg-secondary text-light':

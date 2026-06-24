@@ -10,7 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { PrioridadService } from '../../Services/prioridad-service';
 import { EstadoService } from '../../Services/estado-service';
 import { UserBadgeComponent } from '../user-badge-component/user-badge-component';
-import { AgentService } from '../../Services/agent-service';
+import { UserService } from '../../Services/user-service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -41,7 +41,7 @@ export class VistaTickets implements OnInit {
     private estadoService: EstadoService,
     private prioridadService: PrioridadService,
     private authService: AuthService,
-    private agentService: AgentService,
+    private agentService: UserService,
     private router: Router,
   ) {}
 
@@ -112,7 +112,7 @@ export class VistaTickets implements OnInit {
   }
 
   cargarAgentes(): void {
-    this.agentService.getAllUsers('Agente').subscribe({
+    this.agentService.getAllUsersByRol('Agente').subscribe({
       next: (result) => {
         this.agentesDisponibles = result.objects || [];
       },
@@ -244,5 +244,9 @@ export class VistaTickets implements OnInit {
 
   irReporte(): void {
     this.router.navigate(['/report']);
+  }
+
+  irUsuarios(): void{
+    this.router.navigate(['users'])
   }
 }

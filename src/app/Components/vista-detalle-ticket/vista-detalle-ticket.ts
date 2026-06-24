@@ -13,7 +13,7 @@ import { AuthService } from '../../Services/auth-service';
 import { EstadoTicket } from '../../Interfaces/estado-ticket';
 import { EstadoService } from '../../Services/estado-service';
 import { UserBadgeComponent } from '../user-badge-component/user-badge-component';
-import { AgentService } from '../../Services/agent-service';
+import { UserService } from '../../Services/user-service';
 import { PrioridadService } from '../../Services/prioridad-service';
 import { Prioridad } from '../../Interfaces/prioridad';
 
@@ -104,7 +104,7 @@ export class VistaDetalleTicket implements OnInit {
     private historialService: HistorialService,
     private authService: AuthService,
     private estadoService: EstadoService,
-    private agentService: AgentService,
+    private agentService: UserService,
     private prioridadService: PrioridadService,
   ) {}
 
@@ -146,7 +146,7 @@ export class VistaDetalleTicket implements OnInit {
   }
 
   cargarAgentes(): void {
-    this.agentService.getAllUsers('Agente').subscribe({
+    this.agentService.getAllUsersByRol('Agente').subscribe({
       next: (result) => {
         console.log(result);
         this.agentesDisponibles = result.objects;
@@ -198,7 +198,7 @@ export class VistaDetalleTicket implements OnInit {
         this.comentarios = result.objects.sort((a, b) => {
           const fechaA = new Date(a.Fecha).getTime();
           const fechaB = new Date(b.Fecha).getTime();
-          return fechaA - fechaB; // Ascendente (viejo a nuevo)
+          return fechaA - fechaB; 
         });
       },
       error: (err) => console.error('Error al cargar comentarios:', err),
@@ -212,7 +212,7 @@ export class VistaDetalleTicket implements OnInit {
         this.historial = result.objects.sort((a, b) => {
           const fechaA = new Date(a.fechaActualizaciion).getTime();
           const fechaB = new Date(b.fechaActualizaciion).getTime();
-          return fechaA - fechaB; // Ascendente (viejo a nuevo)
+          return fechaA - fechaB;
         });
       },
       error: (err) => console.error('Error al cargar historial:', err),
