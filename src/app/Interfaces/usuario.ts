@@ -6,6 +6,7 @@ export interface Usuario {
   apellidoPaterno?: string;
   apellidoMaterno?: string;
   username?: string;
+  password?: string;
   email?: string;
   telefono?: string;
   celular?: string;

@@ -1,0 +1,15 @@
+.swal2-input.is-invalid,
+.swal2-select.is-invalid {
+  border: 1px solid #dc3545 !important;
+}
+
+.text-danger {
+  color: #dc3545 !important;
+  font-size: 12px;
+}
+
+.swal2-input,
+.swal2-select {
+  margin-top: 4px !important;
+  margin-bottom: 2px !important;
+}
