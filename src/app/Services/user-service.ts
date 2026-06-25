@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, OnInit } from '@angular/core';
 
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
@@ -11,14 +11,23 @@ import { Rol } from '../Interfaces/rol';
 @Injectable({
   providedIn: 'root',
 })
-export class UserService {
+export class UserService implements OnInit {
   apiUrl = environment.apiUrl + '/Usuario';
 
   roles: Rol[] = [];
+  selectedRol: Rol = {
+    idRol: 0,
+    nombre: '',
+    descripcion: '',
+  };
+  isAdmin: boolean = false;
 
   private http = inject(HttpClient);
 
-  constructor(private rolService: RolService) {}
+  constructor(private rolService: RolService) {
+    this.cargarRoles();
+  }
+  ngOnInit(): void {}
 
   getAllUsersByRol(agente: string): Observable<Result<Usuario>> {
     return this.http.get<Result<Usuario>>(this.apiUrl + '/byRol?nombre=' + agente);
@@ -32,11 +41,21 @@ export class UserService {
     return this.http.post<Result<Usuario>>(this.apiUrl, user);
   }
 
+  updateUser(user: Usuario): Observable<Result<Usuario>> {
+    return this.http.put<Result<Usuario>>(this.apiUrl, user);
+  }
+
+  deleteUser(idUsuario: number): Observable<Result<Usuario>> {
+    return this.http.delete<Result<Usuario>>(this.apiUrl + '?idUsuario=' + idUsuario);
+  }
+
   cargarRoles(): void {
     this.rolService.getAll().subscribe({
       next: (result) => {
         if (result.correct) {
           this.roles = result.objects;
+
+          console.log(this.roles);
         } else {
           console.warn(result.message);
         }
@@ -47,8 +66,9 @@ export class UserService {
     });
   }
 
-  crearUsuario(): void {
+  crearUsuario(isAdmin: boolean): void {
     this.cargarRoles();
+    this.isAdmin = isAdmin;
     Swal.fire({
       title: 'Crear Usuario',
       width: '800px',
@@ -107,15 +127,21 @@ export class UserService {
           <input id="celular" class="swal2-input">
           <small id="errorCelular" class="text-danger d-block"></small>
         </div>
-
-        <div class="col-md-6">
-          <label class="fw-semibold">Rol *</label>
-          <select id="rol" class="swal2-select">
-            <option value="">Seleccione...</option>
-            ${this.roles.map((r) => `<option value="${r.idRol}">${r.nombre}</option>`).join('')}
-          </select>
-          <small id="errorRol" class="text-danger d-block"></small>
-        </div>
+        
+        ${
+          isAdmin
+            ? `
+      <div class="col-md-6">
+        <label class="fw-semibold">Rol *</label>
+        <select id="rol" class="swal2-select" style="display: flex;">
+          <option value="">Seleccione...</option>
+          ${this.roles.map((r) => `<option value="${r.idRol}">${r.nombre}</option>`).join('')}
+        </select>
+        <small id="errorRol" class="text-danger d-block"></small>
+      </div>
+    `
+            : ''
+        }
 
       </div>
     `,
@@ -156,6 +182,19 @@ export class UserService {
         limpiarError('celular', 'errorCelular');
         limpiarError('rol', 'errorRol');
 
+        if (isAdmin) {
+          const rolElement = document.getElementById('rol') as HTMLSelectElement;
+          const rolValue = rolElement ? rolElement.value : '';
+          this.selectedRol = {
+            idRol: rolValue ? Number(rolValue) : 0,
+          };
+        } else {
+          this.selectedRol = {
+            idRol: Number(this.roles?.find((r) => r.nombre === 'Usuario')?.idRol || 0),
+          };
+          console.log(this.selectedRol);
+        }
+
         const usuario = {
           nombre: (document.getElementById('nombre') as HTMLInputElement).value.trim(),
 
@@ -180,9 +219,7 @@ export class UserService {
 
           celular: (document.getElementById('celular') as HTMLInputElement).value.trim(),
 
-          rol: {
-            idRol: Number((document.getElementById('rol') as HTMLSelectElement).value),
-          },
+          rol: this.selectedRol,
 
           activo: 1,
         };
