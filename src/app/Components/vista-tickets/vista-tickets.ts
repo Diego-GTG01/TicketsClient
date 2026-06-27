@@ -146,48 +146,73 @@ export class VistaTickets implements OnInit {
     }).then((result) => {
       if (result.isConfirmed) {
         const idAgenteSeleccionado = Number(result.value);
-        
-        // Ejecución Secuencial: Primero cambia el estado a 2 (Aceptado)
+
+
         this.ticketService.updateStatus(ticket.idTicket, 2).subscribe({
           next: (statusResult) => {
             if (statusResult.correct) {
-              // Si el estado cambió bien, ahora asigna al agente
               this.ticketService.updateAgente(ticket.idTicket, idAgenteSeleccionado).subscribe({
                 next: (agentResult) => {
                   if (agentResult.correct) {
-                    Swal.fire('¡Asignado!', 'El ticket fue aceptado y el agente asignado con éxito.', 'success');
+                    Swal.fire(
+                      '¡Asignado!',
+                      'El ticket fue aceptado y el agente asignado con éxito.',
+                      'success',
+                    );
                     this.cargarTickets();
                   } else {
-                    Swal.fire('Aviso', 'El ticket cambió de estado, pero no se pudo asignar al agente.', 'warning');
+                    Swal.fire(
+                      'Aviso',
+                      'El ticket cambió de estado, pero no se pudo asignar al agente.',
+                      'warning',
+                    );
                   }
                 },
                 error: (err) => {
                   console.error(err);
                   Swal.fire('Error', 'Ocurrió un problema al asignar el agente.', 'error');
-                }
+                },
               });
             } else {
               Swal.fire('Error', 'No se pudo cambiar el estado del ticket.', 'error');
             }
           },
-          error: (err) => console.warn(err)
+          error: (err) => console.warn(err),
         });
       }
     });
   }
 
   rechazarTicket(ticket: Ticket): void {
-    console.log('Ticket rechazado:', ticket.idTicket);
-    this.ticketService.updateStatus(ticket.idTicket, 3).subscribe({
-      next: (result) => {
-        if (result.correct) {
-          Swal.fire('¡Rechazado!', 'El ticket ha sido rechazado con éxito.', 'success');
-          this.cargarTickets();
-        } else {
-          Swal.fire('Error', 'No se pudo rechazar el ticket.', 'error');
-        }
-      },
-      error: (err) => console.warn(err)
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: `¿Realmente deseas rechazar el ticket #${ticket.idTicket}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, rechazar',
+      cancelButtonText: 'Cancelar',
+    }).then((result) => {
+
+      if (result.isConfirmed) {
+        console.log('Ticket rechazado:', ticket.idTicket);
+
+        this.ticketService.updateStatus(ticket.idTicket, 3).subscribe({
+          next: (resultService) => {
+            if (resultService.correct) {
+              Swal.fire('¡Rechazado!', 'El ticket ha sido rechazado con éxito.', 'success');
+              this.cargarTickets();
+            } else {
+              Swal.fire('Error', 'No se pudo rechazar el ticket.', 'error');
+            }
+          },
+          error: (err) => {
+            console.warn(err);
+            Swal.fire('Error', 'Ocurrió un error inesperado en el servidor.', 'error');
+          },
+        });
+      }
     });
   }
 
@@ -221,7 +246,8 @@ export class VistaTickets implements OnInit {
 
     this.ticketsFiltrados = baseTickets.filter((ticket) => {
       const coincideEstado = !this.estadoFiltro || ticket.estado?.nombre === this.estadoFiltro;
-      const coincidePrioridad = !this.prioridadFiltro || ticket.prioridad?.nombre === this.prioridadFiltro;
+      const coincidePrioridad =
+        !this.prioridadFiltro || ticket.prioridad?.nombre === this.prioridadFiltro;
       return coincideEstado && coincidePrioridad;
     });
   }
@@ -246,7 +272,7 @@ export class VistaTickets implements OnInit {
     this.router.navigate(['/report']);
   }
 
-  irUsuarios(): void{
-    this.router.navigate(['users'])
+  irUsuarios(): void {
+    this.router.navigate(['users']);
   }
 }

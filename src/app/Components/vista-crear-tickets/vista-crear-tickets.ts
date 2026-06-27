@@ -102,6 +102,8 @@ export class VistaCrearTickets implements OnInit {
     this.ticket.prioridad = this.ticketForm.value.prioridad;
     this.ticket.usuarioSolicitante = this.usuario;
 
+    console.log(this.ticket)
+
     this.ticketService.addTicket(this.ticket).subscribe({
       next: (response) => {
         Swal.fire({

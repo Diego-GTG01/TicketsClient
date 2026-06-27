@@ -298,53 +298,60 @@ export class VistaUsuarios implements OnInit {
   }
 
   eliminarUsuario(usuario: Usuario) {
-    Swal.fire({
-      title: '¿Estás seguro de cerrar el ticket?',
-      text: 'Una vez cerrado, el ticket pasará al archivo histórico y no podrá modificarse.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, continuar',
-      cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#dc3545',
-      cancelButtonColor: '#6c757d',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        Swal.fire({
-          title: 'Cuidado!!',
-          text: 'Esta seguro de querer eliminar este usuario? ',
-          showCancelButton: true,
-          confirmButtonText: 'Si, eliminar',
-          cancelButtonText: 'Cancelar',
-          confirmButtonColor: '#dc3545',
-          cancelButtonColor: '#6c757d',
-          inputValidator: (value) => {
-            if (!value || value.trim() === '') {
-              return 'Debes agregar un comentario final de resolución para cerrar el caso.';
+    if (usuario.idUsuario == this.idUsuario) {
+      Swal.fire({
+        title: 'No se puede borrar el usuario Actual',
+        icon: 'warning',
+      });
+    } else {
+      Swal.fire({
+        title: '¿Estás seguro de eliminar este usuario?',
+        text: 'Una vez eliminado, no se podran recuperar los datos.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, continuar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          Swal.fire({
+            title: 'Cuidado!!',
+            text: 'Esta seguro de querer eliminar este usuario? ',
+            showCancelButton: true,
+            confirmButtonText: 'Si, eliminar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            inputValidator: (value) => {
+              if (!value || value.trim() === '') {
+                return 'Debes agregar un comentario final de resolución para cerrar el caso.';
+              }
+              return null;
+            },
+          }).then((comentarioResult) => {
+            if (comentarioResult.isConfirmed) {
+              this.usuarioService.deleteUser(usuario.idUsuario).subscribe({
+                next: (res) => {
+                  if (res.correct) {
+                    Swal.fire({
+                      icon: 'success',
+                      title: 'Usuario Eliminado',
+                      text: 'El usuario Ha sido eliminado correctamente',
+                    });
+                    this.cargarUsuarios();
+                  } else {
+                    Swal.fire('Error', 'No se pudieron guardar los cambios.', 'error');
+                  }
+                },
+                error: () => {
+                  Swal.fire('Error', 'Error interno del servidor.', 'error');
+                },
+              });
             }
-            return null;
-          },
-        }).then((comentarioResult) => {
-          if (comentarioResult.isConfirmed) {
-            this.usuarioService.updateUser(result.value).subscribe({
-              next: (res) => {
-                if (res.correct) {
-                  Swal.fire({
-                    icon: 'success',
-                    title: 'Usuario actualizado',
-                    text: 'Los cambios se guardaron correctamente',
-                  });
-                  this.cargarUsuarios();
-                } else {
-                  Swal.fire('Error', 'No se pudieron guardar los cambios.', 'error');
-                }
-              },
-              error: () => {
-                Swal.fire('Error', 'Error interno del servidor.', 'error');
-              },
-            });
-          }
-        });
-      }
-    });
+          });
+        }
+      });
+    }
   }
 }

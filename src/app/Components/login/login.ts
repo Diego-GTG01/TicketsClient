@@ -34,6 +34,7 @@ export class Login implements OnInit {
     private usuarioService: UserService,
     private rolService: RolService,
   ) {}
+
   ngOnInit(): void {
     this.cargarRoles();
   }
@@ -49,25 +50,55 @@ export class Login implements OnInit {
   }
 
   login(): void {
+    Swal.fire({
+      title: 'Iniciando sesión',
+      text: 'Por favor, espere...',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
     this.authService.login(this.usuario).subscribe({
       next: (result) => {
+        Swal.close();
+
         if (result.correct) {
-          console.log(result);
-          this.router.navigate(['/tickets']);
+          Swal.fire({
+            icon: 'success',
+            title: result.message || '¡Bienvenido!',
+            showConfirmButton: false,
+            timer: 1500,
+          }).then(() => {
+            this.router.navigate(['/tickets']);
+          });
         } else {
-          this.error = result.message || 'Usuario o contraseña incorrectos';
+          this.error = result.message || 'Error en las credenciales.';
+          Swal.fire({
+            icon: 'warning',
+            title: 'Atención',
+            text: this.error,
+            confirmButtonColor: '#3085d6',
+          });
         }
       },
       error: (err) => {
-        console.error(err);
-        this.error = 'Ocurrió un error en el servidor.';
+        Swal.close();
+        console.error('Error completo del login:', err);
+
+        this.error = err.error?.message || err.message || 'No se pudo conectar con el servidor.';
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de Autenticación',
+          text: this.error,
+          confirmButtonColor: '#d33',
+        });
       },
     });
   }
 
-  crearUsuario(){
+  crearUsuario() {
     this.usuarioService.crearUsuario(false);
   }
-
-
 }

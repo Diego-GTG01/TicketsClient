@@ -83,7 +83,7 @@ export class VistaDetalleTicket implements OnInit {
       idUsuario: 0,
     },
     mensaje: '',
-    Fecha: new Date(),
+    fecha: new Date(),
   };
 
   agentesDisponibles: any[] = [];
@@ -129,7 +129,6 @@ export class VistaDetalleTicket implements OnInit {
       this.cargarEstados();
       this.cargarAgentes();
       this.cargarPrioridades();
-      
     }
   }
 
@@ -196,10 +195,11 @@ export class VistaDetalleTicket implements OnInit {
     this.comentarioService.getComentarioByIdTicket(this.ticket.idTicket).subscribe({
       next: (result) => {
         this.comentarios = result.objects.sort((a, b) => {
-          const fechaA = new Date(a.Fecha).getTime();
-          const fechaB = new Date(b.Fecha).getTime();
-          return fechaA - fechaB; 
+          const fechaA = new Date(a.fecha).getTime();
+          const fechaB = new Date(b.fecha).getTime();
+          return fechaA - fechaB;
         });
+        console.log(this.comentarios);
       },
       error: (err) => console.error('Error al cargar comentarios:', err),
     });
@@ -214,6 +214,8 @@ export class VistaDetalleTicket implements OnInit {
           const fechaB = new Date(b.fechaActualizaciion).getTime();
           return fechaA - fechaB;
         });
+
+        console.log(this.historial);
       },
       error: (err) => console.error('Error al cargar historial:', err),
     });
@@ -393,7 +395,7 @@ export class VistaDetalleTicket implements OnInit {
             idUsuario: Number(this.idUsuario),
           },
           mensaje: comentarioFinal,
-          Fecha: new Date(),
+          fecha: new Date(),
         };
 
         this.comentarioService.addComentario(this.nuevoComentario).subscribe({
@@ -461,7 +463,7 @@ export class VistaDetalleTicket implements OnInit {
         idUsuario: Number(this.idUsuario),
       },
       mensaje: mensaje,
-      Fecha: new Date(),
+      fecha: new Date(),
     };
     console.log(this.nuevoComentario);
 
@@ -504,9 +506,7 @@ export class VistaDetalleTicket implements OnInit {
   }
 
   private ejecutarCambioPrioridadBackend(idPrioridad: number): void {
-    const prioridadSeleccionada = this.prioridades.find(
-      (p) => p.idPrioridad === idPrioridad,
-    );
+    const prioridadSeleccionada = this.prioridades.find((p) => p.idPrioridad === idPrioridad);
     if (!prioridadSeleccionada) {
       Swal.fire('Error', 'No se encontró la prioridad seleccionada.', 'error');
       return;
@@ -519,7 +519,7 @@ export class VistaDetalleTicket implements OnInit {
           `La prioridad ha cambiado a "${prioridadSeleccionada.nombre}".`,
           'success',
         );
-        this.cargarDatosTicket(); 
+        this.cargarDatosTicket();
       },
       error: (err) => {
         console.error(err);
