@@ -12,6 +12,7 @@ import { EstadoService } from '../../Services/estado-service';
 import { UserBadgeComponent } from '../user-badge-component/user-badge-component';
 import { UserService } from '../../Services/user-service';
 import Swal from 'sweetalert2';
+import { tick } from '@angular/core/testing';
 
 @Component({
   selector: 'app-vista-tickets',
@@ -46,6 +47,9 @@ export class VistaTickets implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    if (!this.authService.isAuthenticated()) {
+      this.authService.logout();
+    }
     this.miRol = this.authService.getUserRol();
     this.token = this.authService.getToken();
     this.username = this.authService.getUsername();
@@ -147,7 +151,6 @@ export class VistaTickets implements OnInit {
       if (result.isConfirmed) {
         const idAgenteSeleccionado = Number(result.value);
 
-
         this.ticketService.updateStatus(ticket.idTicket, 2).subscribe({
           next: (statusResult) => {
             if (statusResult.correct) {
@@ -194,7 +197,6 @@ export class VistaTickets implements OnInit {
       confirmButtonText: 'Sí, rechazar',
       cancelButtonText: 'Cancelar',
     }).then((result) => {
-
       if (result.isConfirmed) {
         console.log('Ticket rechazado:', ticket.idTicket);
 
@@ -264,8 +266,13 @@ export class VistaTickets implements OnInit {
   }
 
   verDetalle(ticket: Ticket): void {
-    localStorage.setItem('ticket', JSON.stringify(ticket));
-    this.router.navigate(['/detail']);
+    console.log(ticket)
+    if (ticket.status ===1) {
+      Swal.fire('Opps', 'El Ticket seleccionado aún no ha sido aprobado', 'error');
+    } else {
+      localStorage.setItem('ticket', JSON.stringify(ticket));
+      this.router.navigate(['/detail']);
+    }
   }
 
   irReporte(): void {

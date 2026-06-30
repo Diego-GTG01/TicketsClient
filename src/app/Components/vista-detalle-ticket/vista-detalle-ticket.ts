@@ -16,6 +16,7 @@ import { UserBadgeComponent } from '../user-badge-component/user-badge-component
 import { UserService } from '../../Services/user-service';
 import { PrioridadService } from '../../Services/prioridad-service';
 import { Prioridad } from '../../Interfaces/prioridad';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-vista-detalle-ticket',
@@ -106,10 +107,14 @@ export class VistaDetalleTicket implements OnInit {
     private estadoService: EstadoService,
     private agentService: UserService,
     private prioridadService: PrioridadService,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
     const ticketLocal = localStorage.getItem('ticket');
+    if (!this.authService.isAuthenticated()) {
+      this.authService.logout();
+    }
     this.miRol = this.authService.getUserRol();
     this.token = this.authService.getToken();
     this.username = this.authService.getUsername();
@@ -526,5 +531,9 @@ export class VistaDetalleTicket implements OnInit {
         Swal.fire('Error', 'No se pudo actualizar la prioridad.', 'error');
       },
     });
+  }
+
+  volver() {
+    this.router.navigate(['/tickets']);
   }
 }

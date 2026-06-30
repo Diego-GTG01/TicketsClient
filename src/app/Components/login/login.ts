@@ -37,6 +37,7 @@ export class Login implements OnInit {
 
   ngOnInit(): void {
     this.cargarRoles();
+    this.authService.logout();
   }
 
   cargarRoles(): void {

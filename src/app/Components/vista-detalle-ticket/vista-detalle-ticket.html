@@ -2,20 +2,24 @@
   <aside class="sidebar">
     <app-user-badge-component [usuario]="usuarioSesion"></app-user-badge-component>
   </aside>
-  <div
-    class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-3"
-  >
+
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-3">
     <h2 class="fw-bold text-secondary mb-0">
       <i class="bi bi-info-circle me-2 text-primary"></i>Detalle del Ticket #{{ ticket.idTicket }}
     </h2>
-    <div
-      class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-3"
-    ></div>
+    <div>
+      <button 
+        type="button" 
+        class="btn btn-outline-secondary fw-semibold d-flex align-items-center gap-1 shadow-sm btn-sm px-3"
+        (click)="volver()"
+      >
+        <i class="bi bi-arrow-left fs-5"></i>
+        <span>Volver</span>
+      </button>
+    </div>
   </div>
 
-  <div
-    class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 pb-2 border-bottom gap-2"
-  >
+  <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 pb-2 border-bottom gap-2">
     <div></div>
 
     @if (ticket.estado?.nombre !== 'Cerrado') {
@@ -100,7 +104,6 @@
               [ngClass]="{
                 'bg-primary text-light': ticket.estado?.nombre === 'Abierto',
                 'bg-warning text-light': ticket.estado?.nombre?.trim() === 'En Proceso',
-                
                 'bg-success text-light': ticket.estado?.nombre === 'Resuelto',
                 'bg-secondary text-light': ticket.estado?.nombre === 'Cerrado',
               }"
@@ -137,8 +140,7 @@
           <div class="mb-3 pb-2 border-bottom">
             <label class="text-muted small d-block fw-bold text-uppercase">Solicitante</label>
             <span class="text-dark">
-              <i class="bi bi-person me-1"></i
-              >{{ ticket.usuarioSolicitante?.username || 'Sin usuario' }}
+              <i class="bi bi-person me-1"></i>{{ ticket.usuarioSolicitante?.username || 'Sin usuario' }}
             </span>
           </div>
 
@@ -159,17 +161,13 @@
             <div class="col-6">
               <label class="text-muted small d-block fw-bold text-uppercase">Creado el</label>
               <small class="text-dark">
-                <i class="bi bi-calendar3 me-1"></i
-                >{{ ticket.FechaCreacion | date: 'dd/MM/yyyy HH:mm' }}
+                <i class="bi bi-calendar3 me-1"></i>{{ ticket.FechaCreacion | date: 'dd/MM/yyyy HH:mm' }}
               </small>
             </div>
             <div class="col-6">
-              <label class="text-muted small d-block fw-bold text-uppercase"
-                >Última Actualización</label
-              >
+              <label class="text-muted small d-block fw-bold text-uppercase">Última Actualización</label>
               <small class="text-muted">
-                <i class="bi bi-clock-history me-1"></i
-                >{{ ticket.FechaActualizacion | date: 'dd/MM/yyyy HH:mm' }}
+                <i class="bi bi-clock-history me-1"></i>{{ ticket.FechaActualizacion | date: 'dd/MM/yyyy HH:mm' }}
               </small>
             </div>
           </div>
@@ -211,7 +209,7 @@
                       <span class="badge bg-light text-primary mx-1 border">
                         {{ cambio.estadoActual.nombre }}
                       </span>
-                    }
+                    @}
 
                     @if (cambio.descripcionCambio) {
                       <div class="mt-2">
@@ -264,12 +262,10 @@
               >
                 <div class="d-flex justify-content-between align-items-center mb-1 gap-3">
                   <strong class="text-dark small">
-                    <i class="bi bi-person me-1"></i
-                    >{{ esMiMensaje ? 'Tú' : comentario.usuario?.username }}
+                    <i class="bi bi-person me-1"></i>{{ esMiMensaje ? 'Tú' : comentario.usuario?.username }}
                   </strong>
                   <small class="text-muted fst-italic" style="font-size: 0.8rem">
-                    <i class="bi bi-calendar-event me-1"></i
-                    >{{ comentario.fecha | date: 'dd/MM/yyyy HH:mm' }}
+                    <i class="bi bi-calendar-event me-1"></i>{{ comentario.fecha | date: 'dd/MM/yyyy HH:mm' }}
                   </small>
                 </div>
                 <p class="mb-0 text-secondary small text-start">{{ comentario.mensaje }}</p>

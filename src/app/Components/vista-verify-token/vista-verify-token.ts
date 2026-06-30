@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { CommonModule } from '@angular/common';
 import { TokenService } from '../../Services/token-service';
@@ -20,8 +20,9 @@ export class VistaVerifyToken implements OnInit {
   datosToken: VerificacionToken | null = null;
 
   constructor(
-    private readonly route: ActivatedRoute,
-    private readonly tokenService: TokenService
+    private route: ActivatedRoute,
+    private tokenService: TokenService, 
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -54,5 +55,8 @@ export class VistaVerifyToken implements OnInit {
         this.loading = false;
       }
     });
+  }
+  volver(): void{
+    this.router.navigate(['/'])
   }
 }

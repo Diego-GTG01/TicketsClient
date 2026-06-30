@@ -28,7 +28,7 @@ export class VistaCrearTickets implements OnInit {
     descripcion: '',
     agenteAsignado: undefined,
     prioridad: undefined,
-    status: 1
+    status: 1,
   };
 
   ticketForm: FormGroup;
@@ -60,6 +60,9 @@ export class VistaCrearTickets implements OnInit {
   }
 
   ngOnInit(): void {
+    if (!this.authService.isAuthenticated()) {
+      this.authService.logout();
+    }
     this.miRol = this.authService.getUserRol();
     this.token = this.authService.getToken();
     this.username = this.authService.getUsername();
@@ -102,7 +105,7 @@ export class VistaCrearTickets implements OnInit {
     this.ticket.prioridad = this.ticketForm.value.prioridad;
     this.ticket.usuarioSolicitante = this.usuario;
 
-    console.log(this.ticket)
+    console.log(this.ticket);
 
     this.ticketService.addTicket(this.ticket).subscribe({
       next: (response) => {
@@ -127,7 +130,7 @@ export class VistaCrearTickets implements OnInit {
           descripcion: '',
           agenteAsignado: undefined,
           prioridad: undefined,
-          status: 1
+          status: 1,
         };
         this.router.navigate(['/tickets']);
       },
@@ -141,5 +144,9 @@ export class VistaCrearTickets implements OnInit {
         console.error(err);
       },
     });
+  }
+
+  volver() {
+    this.router.navigate(['/tickets'])
   }
 }

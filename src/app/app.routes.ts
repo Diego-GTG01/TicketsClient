@@ -4,7 +4,6 @@ import { VistaTickets } from './Components/vista-tickets/vista-tickets';
 import { VistaCrearTickets } from './Components/vista-crear-tickets/vista-crear-tickets';
 import { VistaDetalleTicket } from './Components/vista-detalle-ticket/vista-detalle-ticket';
 import { VistaUsuarios } from './Components/vista-usuarios/vista-usuarios';
-import { VistaCrearUsuario } from './Components/vista-crear-usuario/vista-crear-usuario';
 import { VistaVerifyToken } from './Components/vista-verify-token/vista-verify-token';
 
 export const routes: Routes = [
@@ -24,10 +23,6 @@ export const routes: Routes = [
   {
     path: 'users',
     component: VistaUsuarios,
-  },
-  {
-    path: 'addUser',
-    component: VistaCrearUsuario,
   },
   { path: 'token', 
     component: VistaVerifyToken },

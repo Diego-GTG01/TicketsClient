@@ -51,13 +51,16 @@ export class VistaUsuarios implements OnInit {
   }
 
   ngOnInit(): void {
+    if(!this.authService.isAuthenticated()){
+      this.authService.logout();
+    }
     this.miRol = this.authService.getUserRol();
     this.token = this.authService.getToken();
     this.username = this.authService.getUsername();
     this.idUsuario = Number(this.authService.getIdUsuario());
     this.usuarioSesion = { nombre: this.username, rol: this.miRol };
     this.cargarUsuarios();
-    this.cargarRoles();
+    
   }
 
   cargarRoles(): void {
@@ -76,6 +79,7 @@ export class VistaUsuarios implements OnInit {
   }
 
   cargarUsuarios(): void {
+
     this.usuarioService.getAllUsers().subscribe({
       next: (result) => {
         if (result.correct) {
@@ -93,6 +97,7 @@ export class VistaUsuarios implements OnInit {
   }
 
   crearUsuario() {
+    this.cargarRoles();
     this.usuarioService.crearUsuario(true);
   }
 
@@ -338,8 +343,9 @@ export class VistaUsuarios implements OnInit {
                       icon: 'success',
                       title: 'Usuario Eliminado',
                       text: 'El usuario Ha sido eliminado correctamente',
+                    }).then(() => {
+                      this.cargarUsuarios();
                     });
-                    this.cargarUsuarios();
                   } else {
                     Swal.fire('Error', 'No se pudieron guardar los cambios.', 'error');
                   }
@@ -353,5 +359,9 @@ export class VistaUsuarios implements OnInit {
         }
       });
     }
+  }
+
+  volver(){
+    this.router.navigate(['/tickets'])
   }
 }

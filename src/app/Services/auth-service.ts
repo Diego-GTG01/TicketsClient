@@ -5,6 +5,7 @@ import { Observable, tap } from 'rxjs';
 import { LoginResponse } from '../Interfaces/loginResponse';
 import { Result } from '../Interfaces/result';
 import { UsuarioLogin } from '../Interfaces/usuario-login';
+import { Router } from '@angular/router'; 
 
 @Injectable({
   providedIn: 'root',
@@ -12,6 +13,7 @@ import { UsuarioLogin } from '../Interfaces/usuario-login';
 export class AuthService {
   apiUrl = environment.apiUrl;
   private http = inject(HttpClient);
+  private router = inject(Router);
 
   private userToken = signal<string | null>(sessionStorage.getItem('token'));
   private userRol = signal<string | null>(sessionStorage.getItem('rol'));
@@ -22,7 +24,6 @@ export class AuthService {
     return this.http.post<Result<LoginResponse>>(`${this.apiUrl}/auth/login`, usuarioLogin).pipe(
       tap((response) => {
         if (response.correct && response.object) {
-          console.log(response);
           this.userToken.set(response.object.token);
           this.userRol.set(response.object.rol);
           this.username.set(response.object.username);
@@ -40,11 +41,9 @@ export class AuthService {
   getToken(): string | null {
     return this.userToken();
   }
-
   getUserRol(): string | null {
     return this.userRol();
   }
-
   getUsername(): string | null {
     return this.username();
   }
@@ -53,15 +52,16 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return this.userToken() !== null;
+    return this.userToken() !== null && this.userRol() !== null && this.idUsuario() !== null;
   }
 
   logout(): void {
     this.userToken.set(null);
     this.userRol.set(null);
     this.username.set(null);
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('rol');
-    sessionStorage.removeItem('username');
+    this.idUsuario.set(null);
+    sessionStorage.clear();
+    localStorage.clear();
+    this.router.navigate(['/']);
   }
 }

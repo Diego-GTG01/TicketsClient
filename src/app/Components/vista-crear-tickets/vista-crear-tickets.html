@@ -65,15 +65,25 @@
               <div class="invalid-feedback">La prioridad es obligatoria.</div>
             </div>
 
-            <div class="d-grid gap-2">
+            <!-- SECCIÓN DE BOTONES MODIFICADA -->
+            <div class="d-flex gap-2">
+              <button
+                type="button"
+                class="btn btn-outline-secondary w-50 py-2 fw-semibold"
+                (click)="volver()"
+              >
+                <i class="bi bi-arrow-left-circle me-1"></i>Volver
+              </button>
+              
               <button
                 type="submit"
-                class="btn btn-primary py-2 fw-semibold"
+                class="btn btn-primary w-50 py-2 fw-semibold"
                 [disabled]="ticketForm.invalid"
               >
                 <i class="bi bi-check-circle me-1"></i>Crear Ticket
               </button>
             </div>
+            
           </form>
         </div>
       </div>
