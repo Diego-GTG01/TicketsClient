@@ -320,6 +320,8 @@ export class UserService implements OnInit {
                 title: 'Usuario creado',
                 text: 'El usuario se registró correctamente',
               });
+
+              
             } else {
               Swal.fire('Error', 'Algo salió mal, el usuario no se pudo guardar.', 'error');
             }

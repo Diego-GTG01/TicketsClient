@@ -1,0 +1,38 @@
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+  <div class="card shadow-lg p-4" style="max-width: 450px; width: 100%;">
+    
+    <!-- ESTADO 1: CARGANDO -->
+    <div *ngIf="loading" class="text-center py-4">
+      <h2 class="h4 text-secondary mb-3">Verificando tu token...</h2>
+      <p class="text-muted small">Por favor espera un momento mientras validamos tus credenciales.</p>
+      <div class="spinner-border text-primary mt-3" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+
+    <!-- ESTADO 2: ERROR -->
+    <div *ngIf="!loading && errorExplicito" class="text-center">
+      <div class="fs-1 text-danger mb-2">❌</div>
+      <h2 class="h4 text-danger mb-3">Verificación Fallida</h2>
+      
+      <div class="alert alert-danger text-start small mb-4" role="alert">
+        {{ errorExplicito }}
+      </div>
+      
+      <a href="/" class="btn btn-outline-secondary w-100">Volver al inicio</a>
+    </div>
+
+    <!-- ESTADO 3: ÉXITO -->
+    <div *ngIf="!loading && datosToken" class="text-center">
+      <div class="fs-1 text-success mb-2">✅</div>
+      <h2 class="h4 text-success mb-1">¡Token Verificado!</h2>
+      <p class="text-muted small mb-4">La cuenta asociada ha sido validada con éxito.</p>
+      
+      <hr class="text-muted" />
+
+
+      <button class="btn btn-primary w-100 fw-semibold">Continuar al Panel</button>
+    </div>
+
+  </div>
+</div>
