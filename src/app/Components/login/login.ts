@@ -1,16 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { UsuarioLogin } from '../../Interfaces/usuario-login';
-import { LoginResponse } from '../../Interfaces/loginResponse';
 import { AuthService } from '../../Services/auth-service';
-
-import Swal from 'sweetalert2';
 import { RolService } from '../../Services/rol-service';
 import { UserService } from '../../Services/user-service';
 import { Rol } from '../../Interfaces/rol';
+
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-login',
@@ -51,10 +49,21 @@ export class Login implements OnInit {
   }
 
   login(): void {
+    if (!this.usuario.username.trim() || !this.usuario.password.trim()) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Campos vacíos',
+        text: 'Por favor, introduce tu usuario y contraseña.',
+        confirmButtonColor: '#3085d6',
+      });
+      return;
+    }
+
     Swal.fire({
       title: 'Iniciando sesión',
-      text: 'Por favor, espere...',
+      text: 'Por favor, espere un momento...',
       allowOutsideClick: false,
+      allowEscapeKey: false,
       didOpen: () => {
         Swal.showLoading();
       },
@@ -62,36 +71,33 @@ export class Login implements OnInit {
 
     this.authService.login(this.usuario).subscribe({
       next: (result) => {
-        Swal.close();
-
         if (result.correct) {
           Swal.fire({
             icon: 'success',
-            title: result.message || '¡Bienvenido!',
+            title: '¡Ingreso exitoso!',
+            text: result.message || 'Bienvenido al sistema.',
             showConfirmButton: false,
             timer: 1500,
           }).then(() => {
             this.router.navigate(['/tickets']);
           });
         } else {
-          this.error = result.message || 'Error en las credenciales.';
+          this.error = result.message || 'Credenciales incorrectas.';
           Swal.fire({
             icon: 'warning',
-            title: 'Atención',
+            title: 'No se pudo iniciar sesión',
             text: this.error,
             confirmButtonColor: '#3085d6',
           });
         }
       },
       error: (err) => {
-        Swal.close();
         console.error('Error completo del login:', err);
-
-        this.error = err.error?.message || err.message || 'No se pudo conectar con el servidor.';
+        this.error = err.error?.message || err.message || 'No hay respuesta del servidor.';
 
         Swal.fire({
           icon: 'error',
-          title: 'Error de Autenticación',
+          title: 'Error de conexión',
           text: this.error,
           confirmButtonColor: '#d33',
         });

@@ -3,13 +3,15 @@
     <app-user-badge-component [usuario]="usuarioSesion"></app-user-badge-component>
   </aside>
 
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-3">
+  <div
+    class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-3"
+  >
     <h2 class="fw-bold text-secondary mb-0">
       <i class="bi bi-info-circle me-2 text-primary"></i>Detalle del Ticket #{{ ticket.idTicket }}
     </h2>
     <div>
-      <button 
-        type="button" 
+      <button
+        type="button"
         class="btn btn-outline-secondary fw-semibold d-flex align-items-center gap-1 shadow-sm btn-sm px-3"
         (click)="volver()"
       >
@@ -19,20 +21,22 @@
     </div>
   </div>
 
-  <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 pb-2 border-bottom gap-2">
+  <div
+    class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 pb-2 border-bottom gap-2"
+  >
     <div></div>
 
     @if (ticket.estado?.nombre !== 'Cerrado') {
       <div class="d-flex flex-wrap gap-2">
         @if (usuarioSesion.rol === 'Administrador') {
+          <button
+            class="btn btn-outline-info text-dark fw-semibold d-flex align-items-center gap-1 shadow-sm btn-sm px-3"
+            (click)="abrirModalCambiarPrioridad()"
+          >
+            <i class="bi bi-exclamation-triangle fs-5"></i>
+            <span>Cambiar Prioridad</span>
+          </button>
           @if (ticket.agenteAsignado === null) {
-            <button
-              class="btn btn-outline-info text-dark fw-semibold d-flex align-items-center gap-1 shadow-sm btn-sm px-3"
-              (click)="abrirModalCambiarPrioridad()"
-            >
-              <i class="bi bi-exclamation-triangle fs-5"></i>
-              <span>Cambiar Prioridad</span>
-            </button>
             <button
               class="btn btn-outline-primary fw-semibold d-flex align-items-center gap-1 shadow-sm btn-sm px-3"
               (click)="abrirModalAsignar()"
@@ -140,7 +144,8 @@
           <div class="mb-3 pb-2 border-bottom">
             <label class="text-muted small d-block fw-bold text-uppercase">Solicitante</label>
             <span class="text-dark">
-              <i class="bi bi-person me-1"></i>{{ ticket.usuarioSolicitante?.username || 'Sin usuario' }}
+              <i class="bi bi-person me-1"></i
+              >{{ ticket.usuarioSolicitante?.username || 'Sin usuario' }}
             </span>
           </div>
 
@@ -161,13 +166,17 @@
             <div class="col-6">
               <label class="text-muted small d-block fw-bold text-uppercase">Creado el</label>
               <small class="text-dark">
-                <i class="bi bi-calendar3 me-1"></i>{{ ticket.FechaCreacion | date: 'dd/MM/yyyy HH:mm' }}
+                <i class="bi bi-calendar3 me-1"></i
+                >{{ ticket.FechaCreacion | date: 'dd/MM/yyyy HH:mm' }}
               </small>
             </div>
             <div class="col-6">
-              <label class="text-muted small d-block fw-bold text-uppercase">Última Actualización</label>
+              <label class="text-muted small d-block fw-bold text-uppercase"
+                >Última Actualización</label
+              >
               <small class="text-muted">
-                <i class="bi bi-clock-history me-1"></i>{{ ticket.FechaActualizacion | date: 'dd/MM/yyyy HH:mm' }}
+                <i class="bi bi-clock-history me-1"></i
+                >{{ ticket.FechaActualizacion | date: 'dd/MM/yyyy HH:mm' }}
               </small>
             </div>
           </div>
@@ -209,7 +218,8 @@
                       <span class="badge bg-light text-primary mx-1 border">
                         {{ cambio.estadoActual.nombre }}
                       </span>
-                    @}
+                      @
+                    }
 
                     @if (cambio.descripcionCambio) {
                       <div class="mt-2">
@@ -262,10 +272,12 @@
               >
                 <div class="d-flex justify-content-between align-items-center mb-1 gap-3">
                   <strong class="text-dark small">
-                    <i class="bi bi-person me-1"></i>{{ esMiMensaje ? 'Tú' : comentario.usuario?.username }}
+                    <i class="bi bi-person me-1"></i
+                    >{{ esMiMensaje ? 'Tú' : comentario.usuario?.username }}
                   </strong>
                   <small class="text-muted fst-italic" style="font-size: 0.8rem">
-                    <i class="bi bi-calendar-event me-1"></i>{{ comentario.fecha | date: 'dd/MM/yyyy HH:mm' }}
+                    <i class="bi bi-calendar-event me-1"></i
+                    >{{ comentario.fecha | date: 'dd/MM/yyyy HH:mm' }}
                   </small>
                 </div>
                 <p class="mb-0 text-secondary small text-start">{{ comentario.mensaje }}</p>

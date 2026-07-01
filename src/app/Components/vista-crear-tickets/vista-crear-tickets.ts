@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core'; // 1. Importamos inject
+import { Component, OnInit, inject } from '@angular/core'; 
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Prioridad } from '../../Interfaces/prioridad';
@@ -69,16 +69,18 @@ export class VistaCrearTickets implements OnInit {
     this.idUsuario = Number(this.authService.getIdUsuario());
     this.usuario.idUsuario = this.idUsuario;
     this.usuarioSesion = { nombre: this.username, rol: this.miRol };
-    console.log('El rol del usuario es:', this.miRol);
-    console.log('El token: ', this.token);
 
     this.prioridadService.getAll().subscribe({
       next: (result) => {
         if (result.correct) {
           this.prioridades = result.objects;
-          console.log('prioridades obtenidas');
         } else {
-          console.warn('Algo salió mal');
+          Swal.fire({
+            icon: 'error',
+            title: 'Error de carga',
+            text: 'No se pudieron obtener las prioridades.',
+            confirmButtonColor: '#3085d6'
+          });
         }
       },
       error: (err) => {
@@ -93,60 +95,71 @@ export class VistaCrearTickets implements OnInit {
 
       Swal.fire({
         icon: 'warning',
-        title: 'Formulario incompleto',
-        text: 'Por favor completa todos los campos requeridos.',
+        title: 'Campos requeridos',
+        text: 'Por favor complete todos los campos del formulario.',
+        confirmButtonColor: '#3085d6'
       });
 
       return;
     }
+
+    Swal.fire({
+      title: 'Guardando ticket',
+      text: 'Por favor, espere...',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
 
     this.ticket.titulo = this.ticketForm.value.titulo;
     this.ticket.descripcion = this.ticketForm.value.descripcion;
     this.ticket.prioridad = this.ticketForm.value.prioridad;
     this.ticket.usuarioSolicitante = this.usuario;
 
-    console.log(this.ticket);
-
     this.ticketService.addTicket(this.ticket).subscribe({
       next: (response) => {
         Swal.fire({
           icon: 'success',
-          title: 'Ticket creado',
+          title: '¡Creado!',
           text: 'El ticket se registró correctamente.',
-          confirmButtonText: 'Aceptar',
-        });
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          this.ticketForm.reset();
+          this.ticketForm.patchValue({
+            prioridad: {
+              idPrioridad: '',
+              nombre: '',
+            },
+          });
 
-        this.ticketForm.reset();
-        this.ticketForm.patchValue({
-          prioridad: {
-            idPrioridad: '',
-            nombre: '',
-          },
+          this.ticket = {
+            idTicket: 0,
+            titulo: '',
+            descripcion: '',
+            agenteAsignado: undefined,
+            prioridad: undefined,
+            status: 1,
+          };
+          this.router.navigate(['/tickets']);
         });
-
-        this.ticket = {
-          idTicket: 0,
-          titulo: '',
-          descripcion: '',
-          agenteAsignado: undefined,
-          prioridad: undefined,
-          status: 1,
-        };
-        this.router.navigate(['/tickets']);
       },
       error: (err) => {
+        console.error(err);
+        
         Swal.fire({
           icon: 'error',
-          title: 'Error',
-          text: 'No fue posible crear el ticket.',
+          title: 'Error al crear',
+          text: err.error?.message || 'No fue posible guardar el ticket en este momento.',
+          confirmButtonColor: '#d33'
         });
-
-        console.error(err);
       },
     });
   }
 
   volver() {
-    this.router.navigate(['/tickets'])
+    this.router.navigate(['/tickets']);
   }
 }

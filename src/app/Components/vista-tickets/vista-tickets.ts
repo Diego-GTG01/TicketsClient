@@ -1,18 +1,21 @@
-import { Component, OnInit } from '@angular/core';
-import { TicketService } from '../../Services/ticket-service';
-import { Ticket } from '../../Interfaces/ticket';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../Services/auth-service';
-import { Router } from '@angular/router';
-import { Prioridad } from '../../Interfaces/prioridad';
-import { EstadoTicket } from '../../Interfaces/estado-ticket';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { Subject, switchMap, takeUntil } from 'rxjs';
+
+import { TicketService } from '../../Services/ticket-service';
+import { AuthService } from '../../Services/auth-service';
 import { PrioridadService } from '../../Services/prioridad-service';
 import { EstadoService } from '../../Services/estado-service';
-import { UserBadgeComponent } from '../user-badge-component/user-badge-component';
 import { UserService } from '../../Services/user-service';
+
+import { Ticket } from '../../Interfaces/ticket';
+import { Prioridad } from '../../Interfaces/prioridad';
+import { EstadoTicket } from '../../Interfaces/estado-ticket';
+import { UserBadgeComponent } from '../user-badge-component/user-badge-component';
+
 import Swal from 'sweetalert2';
-import { tick } from '@angular/core/testing';
 
 @Component({
   selector: 'app-vista-tickets',
@@ -21,21 +24,23 @@ import { tick } from '@angular/core/testing';
   templateUrl: './vista-tickets.html',
   styleUrl: './vista-tickets.css',
 })
-export class VistaTickets implements OnInit {
+export class VistaTickets implements OnInit, OnDestroy {
   tickets: Ticket[] = [];
   ticketsFiltrados: Ticket[] = [];
   estados: EstadoTicket[] = [];
   prioridades: Prioridad[] = [];
   agentesDisponibles: any[] = [];
 
-  estadoFiltro: string = '';
-  prioridadFiltro: string = '';
+  estadoFiltro = '';
+  prioridadFiltro = '';
   miRol: string | null = null;
-  token: string | null = null;
-  username: string | null = null;
   idUsuario: number | null = null;
+  tabActiva = 1;
+
   usuarioSesion: any;
-  tabActiva: number = 1;
+  username: string | null = null;
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private ticketService: TicketService,
@@ -49,88 +54,81 @@ export class VistaTickets implements OnInit {
   ngOnInit(): void {
     if (!this.authService.isAuthenticated()) {
       this.authService.logout();
+      return;
     }
+
     this.miRol = this.authService.getUserRol();
-    this.token = this.authService.getToken();
-    this.username = this.authService.getUsername();
     this.idUsuario = Number(this.authService.getIdUsuario());
+    this.username = this.authService.getUsername();
+
+
     this.usuarioSesion = { nombre: this.username, rol: this.miRol };
 
     this.cargarTickets();
-    this.cargarEstado();
-    this.cargarPrioridad();
+    this.cargarEstadosYPrioridades();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   cargarTickets(): void {
     const idNum = Number(this.idUsuario);
+    let request$ = this.ticketService.getAllTickets();
 
     if (this.miRol === 'Administrador') {
-      console.log('Cargando todos los tickets para Administrador');
       this.cargarAgentes();
-      this.ticketService.getAllTickets().subscribe({
-        next: (result) => {
-          this.tickets = result.objects || [];
-          this.tickets.sort((a, b) => a.idTicket - b.idTicket);
-          this.actualizarTicketsPorTab();
-        },
-        error: (err) => console.warn(err),
-      });
     } else if (this.miRol === 'Agente') {
-      console.log('Cargando tickets para Agente');
-      this.ticketService.getAllTicketsByAgenteAsignado(idNum).subscribe({
-        next: (result) => {
-          this.tickets = result.objects || [];
-          this.tickets.sort((a, b) => a.idTicket - b.idTicket);
-          this.ticketsFiltrados = [...this.tickets];
-        },
-        error: (err) => console.warn(err),
-      });
+      request$ = this.ticketService.getAllTicketsByAgenteAsignado(idNum);
     } else if (this.miRol === 'Usuario') {
-      console.log('Cargando tickets para Usuario');
-      this.ticketService.getAllTicketsByUsuarioSolicitado(idNum).subscribe({
-        next: (result) => {
-          this.tickets = result.objects || [];
-          this.tickets.sort((a, b) => a.idTicket - b.idTicket);
-          this.ticketsFiltrados = [...this.tickets];
-        },
-        error: (err) => console.warn(err),
-      });
+      request$ = this.ticketService.getAllTicketsByUsuarioSolicitado(idNum);
     }
+
+    request$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (result) => {
+        this.tickets = result.objects || [];
+        this.tickets.sort((a, b) => a.idTicket - b.idTicket);
+
+        if (this.miRol === 'Administrador') {
+          this.actualizarTicketsPorTab();
+        } else {
+          this.ticketsFiltrados = [...this.tickets];
+        }
+      },
+      error: (err) => console.warn('Error al cargar tickets:', err),
+    });
   }
 
   cambiarTab(tab: number): void {
     this.tabActiva = tab;
     this.limpiarFiltros();
-    this.actualizarTicketsPorTab();
   }
 
   actualizarTicketsPorTab(): void {
     if (this.miRol !== 'Administrador') return;
 
-    this.ticketsFiltrados = this.tickets.filter((ticket) => {
-      if (this.tabActiva === 1) return ticket.status === 1;
-      if (this.tabActiva === 2) return ticket.status === 2;
-      if (this.tabActiva === 3) return ticket.status === 3;
-      return true;
-    });
+    this.ticketsFiltrados = this.tickets.filter((ticket) => ticket.status === this.tabActiva);
   }
 
   cargarAgentes(): void {
-    this.agentService.getAllUsersByRol('Agente').subscribe({
-      next: (result) => {
-        this.agentesDisponibles = result.objects || [];
-      },
-      error: (error) => console.error(error),
-    });
+    this.agentService
+      .getAllUsersByRol('Agente')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => (this.agentesDisponibles = result.objects || []),
+        error: (err) => console.error('Error al cargar agentes:', err),
+      });
   }
 
   aceptarTicket(ticket: Ticket): void {
-    console.log('Iniciando proceso de aceptación para el ticket:', ticket.idTicket);
-
-    const opcionesAgentes: { [key: string]: string } = {};
-    this.agentesDisponibles.forEach((agente) => {
-      opcionesAgentes[agente.idUsuario] = agente.username;
-    });
+    const opcionesAgentes = this.agentesDisponibles.reduce(
+      (acc, agente) => {
+        acc[agente.idUsuario] = agente.username;
+        return acc;
+      },
+      {} as { [key: string]: string },
+    );
 
     Swal.fire({
       title: 'Asignar Agente Técnico',
@@ -143,46 +141,49 @@ export class VistaTickets implements OnInit {
       cancelButtonText: 'Cancelar',
       confirmButtonColor: '#0d6efd',
       cancelButtonColor: '#6c757d',
-      inputValidator: (value) => {
-        if (!value) return 'Debes seleccionar un agente técnico';
-        return null;
-      },
+      inputValidator: (value) => (!value ? 'Debes seleccionar un agente técnico' : null),
     }).then((result) => {
-      if (result.isConfirmed) {
-        const idAgenteSeleccionado = Number(result.value);
+      if (!result.isConfirmed) return;
 
-        this.ticketService.updateStatus(ticket.idTicket, 2).subscribe({
-          next: (statusResult) => {
-            if (statusResult.correct) {
-              this.ticketService.updateAgente(ticket.idTicket, idAgenteSeleccionado).subscribe({
-                next: (agentResult) => {
-                  if (agentResult.correct) {
-                    Swal.fire(
-                      '¡Asignado!',
-                      'El ticket fue aceptado y el agente asignado con éxito.',
-                      'success',
-                    );
-                    this.cargarTickets();
-                  } else {
-                    Swal.fire(
-                      'Aviso',
-                      'El ticket cambió de estado, pero no se pudo asignar al agente.',
-                      'warning',
-                    );
-                  }
-                },
-                error: (err) => {
-                  console.error(err);
-                  Swal.fire('Error', 'Ocurrió un problema al asignar el agente.', 'error');
-                },
-              });
+      const idAgenteSeleccionado = Number(result.value);
+
+      this.ticketService
+        .updateStatus(ticket.idTicket, 2)
+        .pipe(
+          switchMap((statusResult) => {
+            if (!statusResult.correct) {
+              throw new Error('STATUS_ERROR');
+            }
+            return this.ticketService.updateAgente(ticket.idTicket, idAgenteSeleccionado);
+          }),
+          takeUntil(this.destroy$),
+        )
+        .subscribe({
+          next: (agentResult) => {
+            if (agentResult.correct) {
+              Swal.fire(
+                '¡Asignado!',
+                'El ticket fue aceptado y el agente asignado con éxito.',
+                'success',
+              );
+              this.cargarTickets();
             } else {
-              Swal.fire('Error', 'No se pudo cambiar el estado del ticket.', 'error');
+              Swal.fire(
+                'Aviso',
+                'El ticket cambió de estado, pero no se pudo asignar al agente.',
+                'warning',
+              );
             }
           },
-          error: (err) => console.warn(err),
+          error: (err) => {
+            console.error(err);
+            const msg =
+              err.message === 'STATUS_ERROR'
+                ? 'No se pudo cambiar el estado del ticket.'
+                : 'Ocurrió un problema al asignar el agente.';
+            Swal.fire('Error', msg, 'error');
+          },
         });
-      }
     });
   }
 
@@ -197,12 +198,14 @@ export class VistaTickets implements OnInit {
       confirmButtonText: 'Sí, rechazar',
       cancelButtonText: 'Cancelar',
     }).then((result) => {
-      if (result.isConfirmed) {
-        console.log('Ticket rechazado:', ticket.idTicket);
+      if (!result.isConfirmed) return;
 
-        this.ticketService.updateStatus(ticket.idTicket, 3).subscribe({
-          next: (resultService) => {
-            if (resultService.correct) {
+      this.ticketService
+        .updateStatus(ticket.idTicket, 3)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (res) => {
+            if (res.correct) {
               Swal.fire('¡Rechazado!', 'El ticket ha sido rechazado con éxito.', 'success');
               this.cargarTickets();
             } else {
@@ -214,34 +217,29 @@ export class VistaTickets implements OnInit {
             Swal.fire('Error', 'Ocurrió un error inesperado en el servidor.', 'error');
           },
         });
-      }
     });
   }
 
-  cargarEstado(): void {
-    this.estadoService.getAllEstados().subscribe({
-      next: (result) => {
-        if (result.correct) {
-          this.estados = result.objects.flat();
-        }
-      },
-      error: (err) => console.error(err),
-    });
-  }
+  private cargarEstadosYPrioridades(): void {
+    this.estadoService
+      .getAllEstados()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => (this.estados = res.correct ? res.objects.flat() : []),
+        error: (err) => console.error(err),
+      });
 
-  cargarPrioridad(): void {
-    this.prioridadService.getAll().subscribe({
-      next: (result) => {
-        if (result.correct) {
-          this.prioridades = result.objects.flat();
-        }
-      },
-      error: (err) => console.error(err),
-    });
+    this.prioridadService
+      .getAll()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => (this.prioridades = res.correct ? res.objects.flat() : []),
+        error: (err) => console.error(err),
+      });
   }
 
   aplicarFiltros(): void {
-    let baseTickets =
+    const baseTickets =
       this.miRol === 'Administrador'
         ? this.tickets.filter((t) => t.estado?.nombre === 'Aceptado')
         : this.tickets;
@@ -266,9 +264,8 @@ export class VistaTickets implements OnInit {
   }
 
   verDetalle(ticket: Ticket): void {
-    console.log(ticket)
-    if (ticket.status ===1) {
-      Swal.fire('Opps', 'El Ticket seleccionado aún no ha sido aprobado', 'error');
+    if (ticket.status === 1) {
+      Swal.fire('Oops', 'El Ticket seleccionado aún no ha sido aprobado', 'error');
     } else {
       localStorage.setItem('ticket', JSON.stringify(ticket));
       this.router.navigate(['/detail']);
@@ -278,8 +275,7 @@ export class VistaTickets implements OnInit {
   irReporte(): void {
     this.router.navigate(['/report']);
   }
-
   irUsuarios(): void {
-    this.router.navigate(['users']);
+    this.router.navigate(['/users']);
   }
 }

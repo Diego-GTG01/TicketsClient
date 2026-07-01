@@ -121,10 +121,6 @@ export class VistaDetalleTicket implements OnInit {
     this.idUsuario = Number(this.authService.getIdUsuario());
     this.usuarioSesion = { nombre: this.username, rol: this.miRol };
 
-    console.log('El username es:', this.username);
-    console.log('El rol del usuario es:', this.miRol);
-    console.log('El token: ', this.token);
-    console.log('El idUsuario: ', this.idUsuario);
     if (ticketLocal) {
       this.ticket = JSON.parse(ticketLocal);
     }
@@ -141,7 +137,6 @@ export class VistaDetalleTicket implements OnInit {
     this.ticketService.getById(this.ticket.idTicket).subscribe({
       next: (result) => {
         this.ticket = result.object;
-        console.log(this.ticket);
         this.cargarComentarios();
         this.cargarHistorial();
       },
@@ -152,7 +147,6 @@ export class VistaDetalleTicket implements OnInit {
   cargarAgentes(): void {
     this.agentService.getAllUsersByRol('Agente').subscribe({
       next: (result) => {
-        console.log(result);
         this.agentesDisponibles = result.objects;
       },
       error: (error) => {
@@ -165,13 +159,10 @@ export class VistaDetalleTicket implements OnInit {
     this.estadoService.getAllEstados().subscribe({
       next: (result) => {
         if (result.correct) {
-          console.log(result);
           this.estadosDisponibles = result.objects.flat();
           this.estadosDisponiblesParaCambio = this.estadosDisponibles.filter(
             (item) => item.nombre !== 'Cerrado',
           );
-        } else {
-          console.log(result);
         }
       },
       error: (err) => {
@@ -184,10 +175,7 @@ export class VistaDetalleTicket implements OnInit {
     this.prioridadService.getAll().subscribe({
       next: (result) => {
         if (result.correct) {
-          console.log(result);
           this.prioridades = result.objects.flat();
-        } else {
-          console.log(result);
         }
       },
       error: (err) => {
@@ -204,7 +192,6 @@ export class VistaDetalleTicket implements OnInit {
           const fechaB = new Date(b.fecha).getTime();
           return fechaA - fechaB;
         });
-        console.log(this.comentarios);
       },
       error: (err) => console.error('Error al cargar comentarios:', err),
     });
@@ -213,14 +200,11 @@ export class VistaDetalleTicket implements OnInit {
   cargarHistorial(): void {
     this.historialService.getHistorialById(this.ticket.idTicket).subscribe({
       next: (result) => {
-        console.log(result);
         this.historial = result.objects.sort((a, b) => {
           const fechaA = new Date(a.fechaActualizaciion).getTime();
           const fechaB = new Date(b.fechaActualizaciion).getTime();
           return fechaA - fechaB;
         });
-
-        console.log(this.historial);
       },
       error: (err) => console.error('Error al cargar historial:', err),
     });
@@ -243,30 +227,58 @@ export class VistaDetalleTicket implements OnInit {
       cancelButtonText: 'Cancelar',
       confirmButtonColor: '#0d6efd',
       cancelButtonColor: '#6c757d',
+      reverseButtons: true,
       inputValidator: (value) => {
         if (!value) return 'Debes seleccionar un agente técnico';
         return null;
       },
     }).then((result) => {
       if (result.isConfirmed) {
-        this.ejecutarAsignacionBackend(Number(result.value));
+        this.AsignacionBackend(Number(result.value));
       }
     });
   }
 
-  private ejecutarAsignacionBackend(idAgente: number): void {
+  private AsignacionBackend(idAgente: number): void {
+    Swal.fire({
+      title: 'Asignando agente',
+      text: 'Por favor, espere...',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
     this.ticketService.updateAgente(this.ticket.idTicket, idAgente).subscribe({
       next: (result) => {
         if (result.correct) {
-          Swal.fire('¡Asignado!', 'El agente ha sido asignado con éxito.', 'success');
-          this.cargarDatosTicket();
+          Swal.fire({
+            icon: 'success',
+            title: '¡Asignado!',
+            text: 'El agente ha sido asignado con éxito.',
+            showConfirmButton: false,
+            timer: 1500,
+          }).then(() => {
+            this.cargarDatosTicket();
+          });
         } else {
-          Swal.fire('Error', 'No se pudo asignar el agente.', 'error');
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo asignar el agente.',
+            confirmButtonColor: '#d33',
+          });
         }
       },
       error: (err) => {
         console.error(err);
-        Swal.fire('Error', 'No se pudo asignar el agente.', 'error');
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de servidor',
+          text: 'No se pudo procesar la asignación.',
+          confirmButtonColor: '#d33',
+        });
       },
     });
   }
@@ -285,27 +297,41 @@ export class VistaDetalleTicket implements OnInit {
       showCancelButton: true,
       confirmButtonText: 'Actualizar',
       cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#ffc107',
+      confirmButtonColor: '#0d6efd',
       cancelButtonColor: '#6c757d',
+      reverseButtons: true,
       inputValidator: (value) => {
         if (!value) return 'Debes elegir un estado';
         return null;
       },
     }).then((result) => {
       if (result.isConfirmed) {
-        this.ejecutarCambioEstadoBackend(Number(result.value));
+        this.CambioEstadoBackend(Number(result.value));
       }
     });
   }
 
-  private ejecutarCambioEstadoBackend(result: number): void {
-    console.log(result);
+  private CambioEstadoBackend(result: number): void {
     const estadoActual = this.estadosDisponibles.find((t) => t.idEstado === result);
     if (!estadoActual) {
-      console.error('Estado no encontrado', result);
-      Swal.fire('Error', 'No se encontró el estado seleccionado.', 'error');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se encontró el estado seleccionado.',
+        confirmButtonColor: '#d33',
+      });
       return;
     }
+
+    Swal.fire({
+      title: 'Actualizando estado',
+      text: 'Por favor, espere...',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
 
     this.historialNuevo = {
       idHistorial: 0,
@@ -318,16 +344,27 @@ export class VistaDetalleTicket implements OnInit {
       fechaActualizaciion: new Date(),
       descripcionCambio: `Estado cambiado de "${this.ticket.estado?.nombre}" a "${estadoActual.nombre}"`,
     };
-    console.log(this.historialNuevo);
 
     this.historialService.updateEstado(this.historialNuevo).subscribe({
       next: () => {
-        Swal.fire('¡Actualizado!', 'El estado del ticket ha cambiado.', 'success');
-        this.cargarDatosTicket();
+        Swal.fire({
+          icon: 'success',
+          title: '¡Actualizado!',
+          text: 'El estado del ticket ha cambiado.',
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          this.cargarDatosTicket();
+        });
       },
       error: (err) => {
         console.error(err);
-        Swal.fire('Error', 'No se pudo actualizar el estado.', 'error');
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo actualizar el estado.',
+          confirmButtonColor: '#d33',
+        });
       },
     });
   }
@@ -342,6 +379,7 @@ export class VistaDetalleTicket implements OnInit {
       cancelButtonText: 'Cancelar',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d',
+      reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
         Swal.fire({
@@ -354,6 +392,7 @@ export class VistaDetalleTicket implements OnInit {
           cancelButtonText: 'Cancelar',
           confirmButtonColor: '#dc3545',
           cancelButtonColor: '#6c757d',
+          reverseButtons: true,
           inputValidator: (value) => {
             if (!value || value.trim() === '') {
               return 'Debes agregar un comentario final de resolución para cerrar el caso.';
@@ -362,14 +401,24 @@ export class VistaDetalleTicket implements OnInit {
           },
         }).then((comentarioResult) => {
           if (comentarioResult.isConfirmed) {
-            this.ejecutarCierreConComentario(comentarioResult.value);
+            this.CierreConComentario(comentarioResult.value);
           }
         });
       }
     });
   }
 
-  private ejecutarCierreConComentario(comentarioFinal: string): void {
+  private CierreConComentario(comentarioFinal: string): void {
+    Swal.fire({
+      title: 'Archivando caso',
+      text: 'Por favor, espere...',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
     const estadoCerrado = this.estadosDisponibles.find((e) => e.nombre === 'Cerrado') || {
       idEstado: 4,
       nombre: 'Cerrado',
@@ -387,12 +436,8 @@ export class VistaDetalleTicket implements OnInit {
       descripcionCambio: `🔒 Ticket cerrado: ${comentarioFinal}`,
     };
 
-    console.log('Historial de cierre:', historialCierre);
-
     this.historialService.updateEstado(historialCierre).subscribe({
-      next: (result) => {
-        console.log('Resultado del cierre:', result);
-
+      next: () => {
         this.nuevoComentario = {
           idComentario: 0,
           ticket: this.ticket,
@@ -409,28 +454,33 @@ export class VistaDetalleTicket implements OnInit {
               icon: 'success',
               title: '¡Ticket Cerrado!',
               text: 'El caso ha sido solucionado y archivado correctamente.',
-              confirmButtonColor: '#28a745',
+              showConfirmButton: false,
+              timer: 1500,
+            }).then(() => {
+              this.cargarDatosTicket();
             });
-            this.cargarDatosTicket();
           },
           error: (err) => {
-            console.error('Error al guardar comentario final:', err);
-            Swal.fire(
-              'Advertencia',
-              'El ticket se cerró pero no se pudo guardar el comentario final.',
-              'warning',
-            );
-            this.cargarDatosTicket();
+            console.error(err);
+            Swal.fire({
+              icon: 'warning',
+              title: 'Cierre con advertencias',
+              text: 'El ticket se cerró pero no se pudo guardar el comentario final.',
+              confirmButtonColor: '#ffc107',
+            }).then(() => {
+              this.cargarDatosTicket();
+            });
           },
         });
       },
       error: (err) => {
-        console.error('Error al cerrar ticket:', err);
-        Swal.fire(
-          'Error',
-          'Ocurrió un error al intentar cerrar el ticket. Verifica que tengas permisos.',
-          'error',
-        );
+        console.error(err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Ocurrió un error al intentar cerrar el ticket.',
+          confirmButtonColor: '#d33',
+        });
       },
     });
   }
@@ -447,6 +497,7 @@ export class VistaDetalleTicket implements OnInit {
       cancelButtonText: 'Cancelar',
       confirmButtonColor: '#0d6efd',
       cancelButtonColor: '#6c757d',
+      reverseButtons: true,
       inputValidator: (value) => {
         if (!value || value.trim() === '') {
           return 'El mensaje no puede estar vacío';
@@ -461,6 +512,16 @@ export class VistaDetalleTicket implements OnInit {
   }
 
   private agregarComentario(mensaje: string): void {
+    Swal.fire({
+      title: 'Publicando comentario',
+      text: 'Por favor, espere...',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
     this.nuevoComentario = {
       idComentario: 0,
       ticket: this.ticket,
@@ -470,15 +531,27 @@ export class VistaDetalleTicket implements OnInit {
       mensaje: mensaje,
       fecha: new Date(),
     };
-    console.log(this.nuevoComentario);
 
     this.comentarioService.addComentario(this.nuevoComentario).subscribe({
       next: () => {
-        Swal.fire('¡Actualizado!', 'El estado del ticket ha cambiado.', 'success');
-        this.cargarComentarios();
+        Swal.fire({
+          icon: 'success',
+          title: '¡Comentario añadido!',
+          text: 'Tu nota ha sido agregada con éxito.',
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          this.cargarComentarios();
+        });
       },
-      error: () => {
-        Swal.fire('Error', 'No se pudo guardar el comentario en el historial.', 'error');
+      error: (err) => {
+        console.error(err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo guardar el comentario.',
+          confirmButtonColor: '#d33',
+        });
       },
     });
   }
@@ -497,38 +570,62 @@ export class VistaDetalleTicket implements OnInit {
       showCancelButton: true,
       confirmButtonText: 'Actualizar',
       cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#ffc107',
+      confirmButtonColor: '#0d6efd',
       cancelButtonColor: '#6c757d',
+      reverseButtons: true,
       inputValidator: (value) => {
         if (!value) return 'Debes elegir una prioridad';
         return null;
       },
     }).then((result) => {
       if (result.isConfirmed) {
-        this.ejecutarCambioPrioridadBackend(Number(result.value));
+        this.CambioPrioridadBackend(Number(result.value));
       }
     });
   }
 
-  private ejecutarCambioPrioridadBackend(idPrioridad: number): void {
+  private CambioPrioridadBackend(idPrioridad: number): void {
     const prioridadSeleccionada = this.prioridades.find((p) => p.idPrioridad === idPrioridad);
     if (!prioridadSeleccionada) {
-      Swal.fire('Error', 'No se encontró la prioridad seleccionada.', 'error');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se encontró la prioridad seleccionada.',
+        confirmButtonColor: '#d33',
+      });
       return;
     }
 
+    Swal.fire({
+      title: 'Cambiando prioridad',
+      text: 'Por favor, espere...',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
     this.ticketService.updatePrioridad(this.ticket.idTicket, idPrioridad).subscribe({
-      next: (result) => {
-        Swal.fire(
-          '¡Actualizado!',
-          `La prioridad ha cambiado a "${prioridadSeleccionada.nombre}".`,
-          'success',
-        );
-        this.cargarDatosTicket();
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: '¡Actualizado!',
+          text: `La prioridad ha cambiado a "${prioridadSeleccionada.nombre}".`,
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          this.cargarDatosTicket();
+        });
       },
       error: (err) => {
         console.error(err);
-        Swal.fire('Error', 'No se pudo actualizar la prioridad.', 'error');
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo actualizar la prioridad.',
+          confirmButtonColor: '#d33',
+        });
       },
     });
   }

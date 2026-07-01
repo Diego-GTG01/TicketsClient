@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { UserService } from '../../Services/user-service';
 import { Usuario } from '../../Interfaces/usuario';
 import { CommonModule } from '@angular/common';
@@ -9,7 +9,7 @@ import { AuthService } from '../../Services/auth-service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RolService } from '../../Services/rol-service';
 import { Rol } from '../../Interfaces/rol';
-import { errorContext } from 'rxjs/internal/util/errorContext';
+import { firstValueFrom, Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-vista-usuarios',
@@ -18,7 +18,7 @@ import { errorContext } from 'rxjs/internal/util/errorContext';
   templateUrl: './vista-usuarios.html',
   styleUrl: './vista-usuarios.css',
 })
-export class VistaUsuarios implements OnInit {
+export class VistaUsuarios implements OnInit, OnDestroy {
   usuarios: Usuario[] = [];
 
   miRol: string | null = null;
@@ -29,6 +29,8 @@ export class VistaUsuarios implements OnInit {
 
   usuarioForm: FormGroup;
   roles: Rol[] = [];
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private usuarioService: UserService,
@@ -50,60 +52,77 @@ export class VistaUsuarios implements OnInit {
     });
   }
 
-  ngOnInit(): void {
-    if(!this.authService.isAuthenticated()){
+  async ngOnInit(): Promise<void> {
+    if (!this.authService.isAuthenticated()) {
       this.authService.logout();
+      return;
     }
     this.miRol = this.authService.getUserRol();
     this.token = this.authService.getToken();
     this.username = this.authService.getUsername();
     this.idUsuario = Number(this.authService.getIdUsuario());
     this.usuarioSesion = { nombre: this.username, rol: this.miRol };
+    await this.cargarRoles();
     this.cargarUsuarios();
-    
   }
 
-  cargarRoles(): void {
-    this.rolService.getAll().subscribe({
-      next: (result) => {
-        if (result.correct) {
-          this.roles = result.objects;
-        } else {
-          console.warn(result.message);
-        }
-      },
-      error: (err) => {
-        console.error(err);
-      },
-    });
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  async cargarRoles(): Promise<void> {
+    try {
+      const result = await firstValueFrom(this.rolService.getAll());
+
+      if (result.correct) {
+        this.roles = result.objects;
+        console.log(this.roles);
+      } else {
+        console.warn(result.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   cargarUsuarios(): void {
-
-    this.usuarioService.getAllUsers().subscribe({
-      next: (result) => {
-        if (result.correct) {
-          this.usuarios = result.objects;
-          console.log(this.usuarios);
-        } else {
-          Swal.fire('Error', 'Algo salió mal, no se pudo traer a los usuarios.', 'error');
-        }
-      },
-      error: (err) => {
-        console.error('Error al cargar usuarios:', err);
-        Swal.fire('Error', 'Error de conexión con el servidor.', 'error');
-      },
-    });
+    this.usuarioService
+      .getAllUsers()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          if (result.correct) {
+            this.usuarios = result.objects;
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error de carga',
+              text: 'No se pudo obtener la lista de usuarios.',
+              confirmButtonColor: '#3085d6',
+            });
+          }
+        },
+        error: (err) => {
+          console.error('Error al cargar usuarios:', err);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error de conexión',
+            text: 'No se pudo conectar con el servidor.',
+            confirmButtonColor: '#3085d6',
+          });
+        },
+      });
   }
 
   crearUsuario() {
-    this.cargarRoles();
     this.usuarioService.crearUsuario(true);
   }
 
-  editarUsuario(isAdmin: boolean, user: any): void {
-    this.cargarRoles();
+  async editarUsuario(isAdmin: boolean, user: any): Promise<void> {
     const idRolOriginal = user.rol?.idRol || 0;
+
+    await this.cargarRoles();
 
     Swal.fire({
       title: 'Editar Usuario',
@@ -132,12 +151,7 @@ export class VistaUsuarios implements OnInit {
           <input id="username" class="swal2-input" value="${user.username || ''}">
           <small id="errorUsername" class="text-danger d-block"></small>
         </div>
-
-        <div class="col-md-6">
-          <label class="fw-semibold">Email *</label>
-          <input id="email" type="email" class="swal2-input" value="${user.email || ''}">
-          <small id="errorEmail" class="text-danger d-block"></small>
-        </div>
+        
 
         <div class="col-md-6">
           <label class="fw-semibold">Teléfono *</label>
@@ -178,6 +192,9 @@ export class VistaUsuarios implements OnInit {
       showCancelButton: true,
       confirmButtonText: 'Actualizar',
       cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#0d6efd',
+      cancelButtonColor: '#6c757d',
+      reverseButtons: true,
 
       preConfirm: () => {
         const limpiarError = (campo: string, error: string) => {
@@ -215,7 +232,7 @@ export class VistaUsuarios implements OnInit {
             document.getElementById('apellidoMaterno') as HTMLInputElement
           ).value.trim(),
           username: (document.getElementById('username') as HTMLInputElement).value.trim(),
-          email: (document.getElementById('email') as HTMLInputElement).value.trim(),
+          email: (user.email || '').trim(),
           telefono: (document.getElementById('telefono') as HTMLInputElement).value.trim(),
           celular: (document.getElementById('celular') as HTMLInputElement).value.trim(),
           rol: {
@@ -271,97 +288,143 @@ export class VistaUsuarios implements OnInit {
           valido = false;
         }
 
-        if (!valido) {
-          return false;
-        }
-
-        return usuarioEditado;
+        return valido ? usuarioEditado : false;
       },
     }).then((result) => {
       if (result.isConfirmed) {
-        console.log('Datos enviados a actualizar:', result.value);
-
-        this.usuarioService.updateUser(result.value).subscribe({
-          next: (res) => {
-            if (res.correct) {
-              Swal.fire({
-                icon: 'success',
-                title: 'Usuario actualizado',
-                text: 'Los cambios se guardaron correctamente',
-              });
-              this.cargarUsuarios();
-            } else {
-              Swal.fire('Error', 'No se pudieron guardar los cambios.', 'error');
-            }
-          },
-          error: () => {
-            Swal.fire('Error', 'Error interno del servidor.', 'error');
-          },
+        Swal.fire({
+          title: 'Guardando cambios',
+          text: 'Por favor, espere...',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          didOpen: () => Swal.showLoading(),
         });
+
+        this.usuarioService
+          .updateUser(result.value)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: (res) => {
+              if (res.correct) {
+                Swal.fire({
+                  icon: 'success',
+                  title: '¡Actualizado!',
+                  text: 'Los cambios se guardaron correctamente.',
+                  showConfirmButton: false,
+                  timer: 1500,
+                }).then(() => this.cargarUsuarios());
+              } else {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'No se pudieron guardar los cambios.',
+                  confirmButtonColor: '#d33',
+                });
+              }
+            },
+            error: (err) => {
+              if (err.status === 400) {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Username Invalido',
+                  text: 'El username ya está en uso.',
+                  confirmButtonColor: '#d33',
+                });
+              } else {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error de servidor',
+                  text: 'Ocurrió un problema interno en el sistema.',
+                  confirmButtonColor: '#d33',
+                });
+              }
+            },
+          });
       }
     });
   }
 
   eliminarUsuario(usuario: Usuario) {
-    if (usuario.idUsuario == this.idUsuario) {
+    if (usuario.idUsuario === this.idUsuario) {
       Swal.fire({
-        title: 'No se puede borrar el usuario Actual',
         icon: 'warning',
+        title: 'Acción inválida',
+        text: 'No puedes eliminar al usuario con el que tienes la sesión iniciada.',
+        confirmButtonColor: '#3085d6',
       });
-    } else {
-      Swal.fire({
-        title: '¿Estás seguro de eliminar este usuario?',
-        text: 'Una vez eliminado, no se podran recuperar los datos.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, continuar',
-        cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#dc3545',
-        cancelButtonColor: '#6c757d',
-      }).then((result) => {
-        if (result.isConfirmed) {
-          Swal.fire({
-            title: 'Cuidado!!',
-            text: 'Esta seguro de querer eliminar este usuario? ',
-            showCancelButton: true,
-            confirmButtonText: 'Si, eliminar',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            inputValidator: (value) => {
-              if (!value || value.trim() === '') {
-                return 'Debes agregar un comentario final de resolución para cerrar el caso.';
-              }
-              return null;
-            },
-          }).then((comentarioResult) => {
-            if (comentarioResult.isConfirmed) {
-              this.usuarioService.deleteUser(usuario.idUsuario).subscribe({
+      return;
+    }
+
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: `Vas a eliminar permanentemente al usuario ${usuario.username}.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, continuar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: 'Confirmación final',
+          text: '¿Reconfirmas la eliminación definitiva?',
+          icon: 'error',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, eliminar',
+          cancelButtonText: 'Cancelar',
+          confirmButtonColor: '#dc3545',
+          cancelButtonColor: '#6c757d',
+          reverseButtons: true,
+        }).then((comentarioResult) => {
+          if (comentarioResult.isConfirmed) {
+            Swal.fire({
+              title: 'Eliminando usuario',
+              text: 'Por favor, espere...',
+              allowOutsideClick: false,
+              allowEscapeKey: false,
+              didOpen: () => Swal.showLoading(),
+            });
+
+            this.usuarioService
+              .deleteUser(usuario.idUsuario)
+              .pipe(takeUntil(this.destroy$))
+              .subscribe({
                 next: (res) => {
                   if (res.correct) {
                     Swal.fire({
                       icon: 'success',
-                      title: 'Usuario Eliminado',
-                      text: 'El usuario Ha sido eliminado correctamente',
-                    }).then(() => {
-                      this.cargarUsuarios();
-                    });
+                      title: '¡Eliminado!',
+                      text: 'El usuario ha sido eliminado correctamente.',
+                      showConfirmButton: false,
+                      timer: 1500,
+                    }).then(() => this.cargarUsuarios());
                   } else {
-                    Swal.fire('Error', 'No se pudieron guardar los cambios.', 'error');
+                    Swal.fire({
+                      icon: 'error',
+                      title: 'Error',
+                      text: 'No se pudo eliminar al usuario.',
+                      confirmButtonColor: '#d33',
+                    });
                   }
                 },
                 error: () => {
-                  Swal.fire('Error', 'Error interno del servidor.', 'error');
+                  Swal.fire({
+                    icon: 'error',
+                    title: 'Error de servidor',
+                    text: 'Ocurrió un problema de red.',
+                    confirmButtonColor: '#d33',
+                  });
                 },
               });
-            }
-          });
-        }
-      });
-    }
+          }
+        });
+      }
+    });
   }
 
-  volver(){
-    this.router.navigate(['/tickets'])
+  volver() {
+    this.router.navigate(['/tickets']);
   }
 }

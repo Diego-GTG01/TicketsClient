@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, OnInit } from '@angular/core';
 
 import { environment } from '../../environments/environment';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { Usuario } from '../Interfaces/usuario';
 import { Result } from '../Interfaces/result';
 import Swal from 'sweetalert2';
@@ -49,26 +49,26 @@ export class UserService implements OnInit {
     return this.http.delete<Result<Usuario>>(this.apiUrl + '?idUsuario=' + idUsuario);
   }
 
-  cargarRoles(): void {
-    this.rolService.getAll().subscribe({
-      next: (result) => {
-        if (result.correct) {
-          this.roles = result.objects;
+  async cargarRoles(): Promise<void> {
+    try {
+      const result = await firstValueFrom(this.rolService.getAll());
 
-          console.log(this.roles);
-        } else {
-          console.warn(result.message);
-        }
-      },
-      error: (err) => {
-        console.error(err);
-      },
-    });
+      if (result.correct) {
+        this.roles = result.objects;
+        console.log(this.roles);
+      } else {
+        console.warn(result.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
 
-  crearUsuario(isAdmin: boolean): void {
-    this.cargarRoles();
+  async crearUsuario(isAdmin: boolean): Promise<void> {
+    await this.cargarRoles();
+
     this.isAdmin = isAdmin;
+
     Swal.fire({
       title: 'Crear Usuario',
       width: '800px',
@@ -320,8 +320,6 @@ export class UserService implements OnInit {
                 title: 'Usuario creado',
                 text: 'El usuario se registró correctamente',
               });
-
-              
             } else {
               Swal.fire('Error', 'Algo salió mal, el usuario no se pudo guardar.', 'error');
             }
