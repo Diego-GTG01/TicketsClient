@@ -141,6 +141,7 @@ export class VistaTickets implements OnInit, OnDestroy {
       cancelButtonText: 'Cancelar',
       confirmButtonColor: '#0d6efd',
       cancelButtonColor: '#6c757d',
+      reverseButtons: true,
       inputValidator: (value) => (!value ? 'Debes seleccionar un agente técnico' : null),
     }).then((result) => {
       if (!result.isConfirmed) return;
@@ -197,6 +198,7 @@ export class VistaTickets implements OnInit, OnDestroy {
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Sí, rechazar',
       cancelButtonText: 'Cancelar',
+      reverseButtons: true,
     }).then((result) => {
       if (!result.isConfirmed) return;
 
@@ -266,7 +268,10 @@ export class VistaTickets implements OnInit, OnDestroy {
   verDetalle(ticket: Ticket): void {
     if (ticket.status === 1) {
       Swal.fire('Oops', 'El Ticket seleccionado aún no ha sido aprobado', 'error');
-    } else {
+    } else if (ticket.status === 3) {
+      Swal.fire('Oops', 'El Ticket seleccionado fue descartado', 'error');
+    } 
+    else {
       localStorage.setItem('ticket', JSON.stringify(ticket));
       this.router.navigate(['/detail']);
     }

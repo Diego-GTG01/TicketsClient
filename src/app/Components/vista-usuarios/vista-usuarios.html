@@ -2,24 +2,25 @@
   <aside class="sidebar">
     <app-user-badge-component [usuario]="usuarioSesion"></app-user-badge-component>
   </aside>
-  <div class="d-flex flex-column gap-3 mb-3">
+  
+  <div class="d-flex flex-column gap-3 mb-4 pb-2 border-bottom">
     <div class="d-flex justify-content-between align-items-center">
-      <h2 class="fw-bold text-secondary mb-0">
+      <h2 class="fw-bold text-secondary mb-0 fs-3 fs-md-2">
         <i class="bi bi-people-fill me-2 text-primary"></i>Gestión de Usuarios
       </h2>
       <button
         type="button"
-        class="btn btn-outline-secondary fw-semibold d-flex align-items-center gap-1 shadow-sm py-2 px-3"
+        class="btn btn-outline-secondary fw-semibold d-flex align-items-center gap-1 shadow-sm py-2 px-3 btn-sm btn-md-md"
         (click)="volver()"
       >
         <i class="bi bi-arrow-left fs-5"></i>
-        <span>Volver</span>
+        <span class="d-none d-sm-inline">Volver</span>
       </button>
     </div>
 
     <div class="d-flex justify-content-end">
       <button
-        class="btn btn-primary fw-semibold d-flex align-items-center gap-2 shadow-sm py-2"
+        class="btn btn-primary fw-semibold d-flex align-items-center gap-2 shadow-sm py-2 w-100 w-sm-auto justify-content-center"
         (click)="crearUsuario()"
       >
         <i class="bi bi-plus-lg fs-5"></i>
@@ -28,89 +29,150 @@
     </div>
   </div>
 
-  <div class="table-responsive shadow-sm rounded border bg-white">
-    <table class="table table-hover align-middle mb-0 text-center">
-      <thead class="table-dark text-uppercase fs-7 small">
-        <tr>
-          <th scope="col">Usuario</th>
-          <th scope="col">Nombre Completo</th>
-          <th scope="col">Email</th>
-          <th scope="col">Rol</th>
-          <th scope="col">Estado</th>
-          <th scope="col">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (user of usuarios; track user.idUsuario) {
-          <tr>
-            <td>
-              <span class="badge bg-light text-dark border">
-                <i class="bi bi-person me-1"></i>{{ user.username }}
-              </span>
-            </td>
-            <td class="text-start ps-4">
-              {{ user.nombre }} {{ user.apellidoPaterno }} {{ user.apellidoMaterno }}
-            </td>
-            <td>
-              <small class="text-muted">{{ user.email }}</small>
-            </td>
-            <td>
-              @let nombreRol = user.rol?.nombre?.toLowerCase();
-              <span
-                class="badge border px-3 py-2"
-                [ngClass]="{
-                  'bg-danger-subtle text-danger border-danger-subtle':
-                    nombreRol === 'administrador',
-                  'bg-primary-subtle text-primary border-primary-subtle': nombreRol === 'agente',
-                  'bg-success-subtle text-success border-success-subtle': nombreRol === 'usuario',
-                  'bg-secondary-subtle text-secondary':
-                    !nombreRol ||
-                    (nombreRol !== 'administrador' &&
-                      nombreRol !== 'agente' &&
-                      nombreRol !== 'usuario'),
-                }"
-              >
-                {{ user.rol?.nombre || 'Sin Rol' }}
-              </span>
-            </td>
-            <td>
-              @if (user.activo === 1) {
-                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">
-                  <i class="bi bi-check-circle-fill me-1"></i> Activo
+  @if (usuarios.length === 0) {
+    <div class="text-center text-muted py-5 my-4 bg-white rounded border border-dashed shadow-sm px-3">
+      <i class="bi bi-people me-2 fs-1 d-block mb-3 text-secondary opacity-50"></i>
+      <p class="mb-0 fw-medium">No se encontraron usuarios registrados en el sistema.</p>
+    </div>
+  } @else {
+    
+    <div class="d-block d-md-none">
+      @for (user of usuarios; track user.idUsuario) {
+        <div class="card mb-3 shadow-sm border rounded bg-white">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
+              <div class="d-flex flex-column gap-1 align-items-start">
+                <span class="badge bg-light text-dark border">
+                  <i class="bi bi-person me-1"></i>{{ user.username }}
                 </span>
-              } @else {
-                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3">
-                  <i class="bi bi-x-circle-fill me-1"></i> Inactivo
-                </span>
-              }
-            </td>
-            <td>
-              <div class="d-flex gap-2 justify-content-center align-items-center">
-                <button
-                  class="btn btn-danger btn-sm px-3 fw-semibold d-flex align-items-center gap-1"
-                  (click)="eliminarUsuario(user)"
-                >
-                  <i class="bi bi-trash-fill"></i>
-                </button>
-
-                <button
-                  class="btn btn-primary btn-sm px-3 fw-semibold d-flex align-items-center gap-1"
-                  (click)="editarUsuario(miRol === 'Administrador', user)"
-                >
-                  <i class="bi bi-pencil-square"></i>
-                </button>
+                <div class="text-muted small mt-1">ID: #{{ user.idUsuario }}</div>
               </div>
-            </td>
-          </tr>
-        } @empty {
+              
+              <div class="d-flex flex-column align-items-end gap-1.5">
+                @if (user.activo === 1) {
+                  <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1">
+                    <i class="bi bi-check-circle-fill me-1"></i> Activo
+                  </span>
+                } @else {
+                  <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2.5 py-1">
+                    <i class="bi bi-x-circle-fill me-1"></i> Inactivo
+                  </span>
+                }
+                
+                @let nombreRol = user.rol?.nombre?.toLowerCase();
+                <span
+                  class="badge border px-2 py-1 small mt-1"
+                  [ngClass]="{
+                    'bg-danger-subtle text-danger border-danger-subtle': nombreRol === 'administrador',
+                    'bg-primary-subtle text-primary border-primary-subtle': nombreRol === 'agente',
+                    'bg-success-subtle text-success border-success-subtle': nombreRol === 'usuario',
+                    'bg-secondary-subtle text-secondary': !nombreRol || !['administrador', 'agente', 'usuario'].includes(nombreRol)
+                  }"
+                >
+                  {{ user.rol?.nombre || 'Sin Rol' }}
+                </span>
+              </div>
+            </div>
+
+            <h6 class="fw-bold text-dark mb-1">
+              {{ user.nombre }} {{ user.apellidoPaterno }} {{ user.apellidoMaterno }}
+            </h6>
+            <p class="text-muted small mb-3 text-truncate">
+              <i class="bi bi-envelope me-1"></i>{{ user.email }}
+            </p>
+
+            <div class="d-flex gap-2 border-top pt-2.5 mt-2">
+              <button
+                class="btn btn-outline-danger btn-sm flex-grow-1 fw-semibold py-2"
+                (click)="eliminarUsuario(user)"
+              >
+                <i class="bi bi-trash-fill me-1"></i> Eliminar
+              </button>
+              <button
+                class="btn btn-primary btn-sm flex-grow-1 fw-semibold py-2"
+                (click)="editarUsuario(miRol === 'Administrador', user)"
+              >
+                <i class="bi bi-pencil-square me-1"></i> Editar
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="table-responsive shadow-sm rounded border bg-white d-none d-md-block">
+      <table class="table table-hover align-middle mb-0 text-center">
+        <thead class="table-dark text-uppercase fs-7 small">
           <tr>
-            <td colspan="6" class="text-center text-muted py-4 fst-italic">
-              <i class="bi bi-people me-2 fs-4 d-block mb-2"></i>
-              No se encontraron usuarios registrados en el sistema.
-            </td>
+            <th scope="col" class="py-3">Usuario</th>
+            <th scope="col" class="py-3 text-start ps-4">Nombre Completo</th>
+            <th scope="col" class="py-3 d-none d-lg-table-cell">Email</th>
+            <th scope="col" class="py-3">Rol</th>
+            <th scope="col" class="py-3">Estado</th>
+            <th scope="col" class="py-3" style="min-width: 130px">Acciones</th>
           </tr>
-        }
-      </tbody>
-    </table>
-  </div>
+        </thead>
+        <tbody>
+          @for (user of usuarios; track user.idUsuario) {
+            <tr>
+              <td>
+                <span class="badge bg-light text-dark border">
+                  <i class="bi bi-person me-1"></i>{{ user.username }}
+                </span>
+              </td>
+              <td class="text-start ps-4 text-truncate" style="max-width: 250px;">
+                {{ user.nombre }} {{ user.apellidoPaterno }} {{ user.apellidoMaterno }}
+              </td>
+              <td class="d-none d-lg-table-cell text-truncate" style="max-width: 220px;">
+                <small class="text-muted">{{ user.email }}</small>
+              </td>
+              <td>
+                @let nombreRol = user.rol?.nombre?.toLowerCase();
+                <span
+                  class="badge border px-3 py-2"
+                  [ngClass]="{
+                    'bg-danger-subtle text-danger border-danger-subtle': nombreRol === 'administrador',
+                    'bg-primary-subtle text-primary border-primary-subtle': nombreRol === 'agente',
+                    'bg-success-subtle text-success border-success-subtle': nombreRol === 'usuario',
+                    'bg-secondary-subtle text-secondary': !nombreRol || !['administrador', 'agente', 'usuario'].includes(nombreRol)
+                  }"
+                >
+                  {{ user.rol?.nombre || 'Sin Rol' }}
+                </span>
+              </td>
+              <td>
+                @if (user.activo === 1) {
+                  <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1.5">
+                    <i class="bi bi-check-circle-fill me-1"></i> Activo
+                  </span>
+                } @else {
+                  <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1.5">
+                    <i class="bi bi-x-circle-fill me-1"></i> Inactivo
+                  </span>
+                }
+              </td>
+              <td>
+                <div class="d-flex gap-2 justify-content-center align-items-center">
+                  <button
+                    class="btn btn-danger btn-sm px-2.5"
+                    (click)="eliminarUsuario(user)"
+                    title="Eliminar usuario"
+                  >
+                    <i class="bi bi-trash-fill"></i>
+                  </button>
+                  <button
+                    class="btn btn-primary btn-sm px-2.5"
+                    (click)="editarUsuario(miRol === 'Administrador', user)"
+                    title="Editar usuario"
+                  >
+                    <i class="bi bi-pencil-square"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
 </div>

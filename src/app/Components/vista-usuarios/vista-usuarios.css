@@ -13,3 +13,11 @@
   margin-top: 4px !important;
   margin-bottom: 2px !important;
 }
+
+.max-modal-width {
+  max-width: 800px !important; 
+}
+
+.swal2-html-container {
+  overflow-x: hidden !important;
+}

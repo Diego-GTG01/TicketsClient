@@ -24,6 +24,10 @@ export const routes: Routes = [
     path: 'users',
     component: VistaUsuarios,
   },
-  { path: 'token', 
-    component: VistaVerifyToken },
+  { path: 'token', component: VistaVerifyToken },
+  {
+    path: '**',
+    redirectTo: '',
+    pathMatch: 'full',
+  },
 ];

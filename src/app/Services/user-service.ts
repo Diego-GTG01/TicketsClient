@@ -71,75 +71,84 @@ export class UserService implements OnInit {
 
     Swal.fire({
       title: 'Crear Usuario',
-      width: '800px',
+      customClass: {
+        popup: 'shadow-lg rounded-4 p-4', 
+        title: 'fw-bold text-secondary fs-4 border-bottom pb-2 text-start w-100',
+        actions: 'w-100 justify-content-end gap-2 border-top pt-3 mt-4',
+        confirmButton: 'btn btn-primary fw-semibold px-4 py-2 order-2',
+        cancelButton: 'btn btn-outline-secondary fw-semibold px-4 py-2 order-1',
+      },
+      buttonsStyling: false,
+      width: 'auto', 
+
       html: `
-      <div class="row g-2 text-start">
+      <div class="row g-3 text-start px-1" style="max-width: 720px;">
 
-        <div class="col-md-6">
-          <label class="fw-semibold">Nombre *</label>
-          <input id="nombre" class="swal2-input">
-          <small id="errorNombre" class="text-danger d-block"></small>
+        <div class="col-sm-6">
+          <label class="form-label fw-semibold small text-muted mb-1">Nombre *</label>
+          <input id="nombre" class="form-control shadow-sm">
+          <div id="errorNombre" class="invalid-feedback d-block mt-1 small"></div>
         </div>
 
-        <div class="col-md-6">
-          <label class="fw-semibold">Apellido Paterno *</label>
-          <input id="apellidoPaterno" class="swal2-input">
-          <small id="errorApellidoPaterno" class="text-danger d-block"></small>
+        <div class="col-sm-6">
+          <label class="form-label fw-semibold small text-muted mb-1">Apellido Paterno *</label>
+          <input id="apellidoPaterno" class="form-control shadow-sm">
+          <div id="errorApellidoPaterno" class="invalid-feedback d-block mt-1 small"></div>
         </div>
 
-        <div class="col-md-6">
-          <label class="fw-semibold">Apellido Materno</label>
-          <input id="apellidoMaterno" class="swal2-input">
+        <div class="col-sm-6">
+          <label class="form-label fw-semibold small text-muted mb-1">Apellido Materno</label>
+          <input id="apellidoMaterno" class="form-control shadow-sm">
         </div>
 
-        <div class="col-md-6">
-          <label class="fw-semibold">Usuario *</label>
-          <input id="username" class="swal2-input">
-          <small id="errorUsername" class="text-danger d-block"></small>
+        <div class="col-sm-6">
+          <label class="form-label fw-semibold small text-muted mb-1">Usuario *</label>
+          <input id="username" class="form-control shadow-sm">
+          <div id="errorUsername" class="invalid-feedback d-block mt-1 small"></div>
         </div>
 
-        <div class="col-md-6">
-          <label class="fw-semibold">Password *</label>
-          <input id="password" type="password" class="swal2-input">
-          <small id="errorPassword" class="text-danger d-block"></small>
+        <div class="col-sm-6">
+          <label class="form-label fw-semibold small text-muted mb-1">Password *</label>
+          <input id="password" type="password" class="form-control shadow-sm">
+          <div id="errorPassword" class="invalid-feedback d-block mt-1 small"></div>
         </div>
 
-        <div class="col-md-6">
-          <label class="fw-semibold">Confirmar Password *</label>
-          <input id="passwordConfirmar" type="password" class="swal2-input">
-          <small id="errorPasswordConfirmar" class="text-danger d-block"></small>
+        <div class="col-sm-6">
+          <label class="form-label fw-semibold small text-muted mb-1">Confirmar Password *</label>
+          <input id="passwordConfirmar" type="password" class="form-control shadow-sm">
+          <div id="errorPasswordConfirmar" class="invalid-feedback d-block mt-1 small"></div>
         </div>
 
-        <div class="col-md-6">
-          <label class="fw-semibold">Email *</label>
-          <input id="email" type="email" class="swal2-input">
-          <small id="errorEmail" class="text-danger d-block"></small>
+        <div class="col-sm-6">
+          <label class="form-label fw-semibold small text-muted mb-1">Email *</label>
+          <input id="email" type="email" class="form-control shadow-sm">
+          <div id="errorEmail" class="invalid-feedback d-block mt-1 small"></div>
         </div>
 
-        <div class="col-md-6">
-          <label class="fw-semibold">Teléfono *</label>
-          <input id="telefono" class="swal2-input">
-          <small id="errorTelefono" class="text-danger d-block"></small>
+        <div class="col-sm-6">
+          <label class="form-label fw-semibold small text-muted mb-1">Teléfono *</label>
+          <input id="telefono" class="form-control shadow-sm">
+          <div id="errorTelefono" class="invalid-feedback d-block mt-1 small"></div>
         </div>
 
-        <div class="col-md-6">
-          <label class="fw-semibold">Celular *</label>
-          <input id="celular" class="swal2-input">
-          <small id="errorCelular" class="text-danger d-block"></small>
+        <div class="col-sm-6">
+          <label class="form-label fw-semibold small text-muted mb-1">Celular *</label>
+          <input id="celular" class="form-control shadow-sm">
+          <div id="errorCelular" class="invalid-feedback d-block mt-1 small"></div>
         </div>
         
         ${
           isAdmin
             ? `
-      <div class="col-md-6">
-        <label class="fw-semibold">Rol *</label>
-        <select id="rol" class="swal2-select" style="display: flex;">
-          <option value="">Seleccione...</option>
-          ${this.roles.map((r) => `<option value="${r.idRol}">${r.nombre}</option>`).join('')}
-        </select>
-        <small id="errorRol" class="text-danger d-block"></small>
-      </div>
-    `
+          <div class="col-sm-6">
+            <label class="form-label fw-semibold small text-muted mb-1">Rol *</label>
+            <select id="rol" class="form-select shadow-sm">
+              <option value="">Seleccione...</option>
+              ${this.roles.map((r) => `<option value="${r.idRol}">${r.nombre}</option>`).join('')}
+            </select>
+            <div id="errorRol" class="invalid-feedback d-block mt-1 small"></div>
+          </div>
+        `
             : ''
         }
 
@@ -148,6 +157,7 @@ export class UserService implements OnInit {
       showCancelButton: true,
       confirmButtonText: 'Guardar',
       cancelButtonText: 'Cancelar',
+      reverseButtons: true,
 
       preConfirm: () => {
         const limpiarError = (campo: string, error: string) => {
