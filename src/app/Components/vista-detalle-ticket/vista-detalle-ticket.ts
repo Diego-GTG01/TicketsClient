@@ -146,13 +146,12 @@ export class VistaDetalleTicket implements OnInit {
             title: 'Error al cargar ticket',
             text: 'No se pudo cargar el ticket.',
             confirmButtonColor: '#3085d6',
-          }).then( (()=>{
+          }).then(() => {
             this.router.navigate(['/tickets']);
-          }))
+          });
         }
       },
       error: (err) => {
-        console.error('Error al cargar ticket:', err);
         if (err.status === 403) {
           Swal.fire({
             icon: 'error',
@@ -180,7 +179,11 @@ export class VistaDetalleTicket implements OnInit {
         this.agentesDisponibles = result.objects;
       },
       error: (error) => {
-        console.error(error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de carga',
+          text: 'No se pudieron obtener los agentes disponibles.',
+        });
       },
     });
   }
@@ -196,7 +199,12 @@ export class VistaDetalleTicket implements OnInit {
         }
       },
       error: (err) => {
-        console.log(err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de carga',
+          text: 'No se pudieron obtener los estados disponibles.',
+          confirmButtonColor: '#3085d6',
+        });
       },
     });
   }
@@ -209,7 +217,12 @@ export class VistaDetalleTicket implements OnInit {
         }
       },
       error: (err) => {
-        console.log(err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de carga',
+          text: 'No se pudieron obtener las prioridades.',
+          confirmButtonColor: '#3085d6',
+        });
       },
     });
   }
@@ -223,7 +236,14 @@ export class VistaDetalleTicket implements OnInit {
           return fechaA - fechaB;
         });
       },
-      error: (err) => console.error('Error al cargar comentarios:', err),
+      error: (err) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de carga',
+          text: 'No se pudieron obtener los comentarios.',
+          confirmButtonColor: '#3085d6',
+        });
+      },
     });
   }
 
@@ -236,7 +256,14 @@ export class VistaDetalleTicket implements OnInit {
           return fechaA - fechaB;
         });
       },
-      error: (err) => console.error('Error al cargar historial:', err),
+      error: (err) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de carga',
+          text: 'No se pudieron obtener las prioridades.',
+          confirmButtonColor: '#3085d6',
+        });
+      },
     });
   }
 
@@ -302,7 +329,6 @@ export class VistaDetalleTicket implements OnInit {
         }
       },
       error: (err) => {
-        console.error(err);
         Swal.fire({
           icon: 'error',
           title: 'Error de servidor',
@@ -388,7 +414,6 @@ export class VistaDetalleTicket implements OnInit {
         });
       },
       error: (err) => {
-        console.error(err);
         Swal.fire({
           icon: 'error',
           title: 'Error',
@@ -491,7 +516,6 @@ export class VistaDetalleTicket implements OnInit {
             });
           },
           error: (err) => {
-            console.error(err);
             Swal.fire({
               icon: 'warning',
               title: 'Cierre con advertencias',
@@ -504,7 +528,6 @@ export class VistaDetalleTicket implements OnInit {
         });
       },
       error: (err) => {
-        console.error(err);
         Swal.fire({
           icon: 'error',
           title: 'Error',
@@ -575,7 +598,6 @@ export class VistaDetalleTicket implements OnInit {
         });
       },
       error: (err) => {
-        console.error(err);
         Swal.fire({
           icon: 'error',
           title: 'Error',
@@ -649,7 +671,6 @@ export class VistaDetalleTicket implements OnInit {
         });
       },
       error: (err) => {
-        console.error(err);
         Swal.fire({
           icon: 'error',
           title: 'Error',

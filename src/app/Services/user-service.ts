@@ -55,12 +55,21 @@ export class UserService implements OnInit {
 
       if (result.correct) {
         this.roles = result.objects;
-        console.log(this.roles);
       } else {
-        console.warn(result.message);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de carga',
+          text: result.message,
+          confirmButtonColor: '#3085d6',
+        });
       }
     } catch (err) {
-      console.error(err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de carga',
+        text: 'No se pudieron obtener las prioridades.',
+        confirmButtonColor: '#3085d6',
+      });
     }
   }
 
@@ -72,14 +81,14 @@ export class UserService implements OnInit {
     Swal.fire({
       title: 'Crear Usuario',
       customClass: {
-        popup: 'shadow-lg rounded-4 p-4', 
+        popup: 'shadow-lg rounded-4 p-4',
         title: 'fw-bold text-secondary fs-4 border-bottom pb-2 text-start w-100',
         actions: 'w-100 justify-content-end gap-2 border-top pt-3 mt-4',
         confirmButton: 'btn btn-primary fw-semibold px-4 py-2 order-2',
         cancelButton: 'btn btn-outline-secondary fw-semibold px-4 py-2 order-1',
       },
       buttonsStyling: false,
-      width: 'auto', 
+      width: 'auto',
 
       html: `
       <div class="row g-3 text-start px-1" style="max-width: 720px;">
@@ -202,9 +211,7 @@ export class UserService implements OnInit {
           this.selectedRol = {
             idRol: Number(this.roles?.find((r) => r.nombre === 'Usuario')?.idRol || 0),
           };
-          console.log(this.selectedRol);
         }
-
         const usuario = {
           nombre: (document.getElementById('nombre') as HTMLInputElement).value.trim(),
 
@@ -320,8 +327,6 @@ export class UserService implements OnInit {
       },
     }).then((result) => {
       if (result.isConfirmed) {
-        console.log(result.value);
-
         this.addUser(result.value).subscribe({
           next: (result) => {
             if (result.correct) {

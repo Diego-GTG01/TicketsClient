@@ -5,9 +5,6 @@ import { AuthService } from '../Services/auth-service';
 export const authInterceptorInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const token = authService.getToken();
-
-  console.log('Token:', token);
-
   if (token) {
     const cloned = req.clone({
       setHeaders: {

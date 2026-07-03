@@ -86,7 +86,6 @@ export class VistaRecovery implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error al verificar el token:', error);
         this.cargando = false;
         this.tokenValido = false;
         this.mensaje = 'Ocurrió un error al validar el token.';
@@ -158,7 +157,6 @@ export class VistaRecovery implements OnInit {
       },
       error: (err) => {
         Swal.close();
-        console.error('Error al verificar el token de recuperación:', err);
         Swal.fire({
           icon: 'error',
           title: 'Error inesperado',

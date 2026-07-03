@@ -105,7 +105,6 @@ export class Login implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Error completo del login:', err);
         this.error = err.error?.message || err.message || 'No hay respuesta del servidor.';
 
         if (err.status === 403) {

@@ -77,7 +77,6 @@ export class VistaVerifyToken implements OnInit, OnDestroy {
           this.loading = false;
         },
         error: (err) => {
-          console.error('Error en la verificación del token:', err);
           this.errorExplicito = 'Ocurrió un error al conectar con el servidor.';
           this.loading = false;
           Swal.fire({

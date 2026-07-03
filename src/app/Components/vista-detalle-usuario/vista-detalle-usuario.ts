@@ -299,12 +299,21 @@ export class VistaDetalleUsuario implements OnInit {
 
       if (result.correct) {
         this.roles = result.objects;
-        console.log(this.roles);
       } else {
-        console.warn(result.message);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de carga',
+          text: 'No se pudieron obtener los Roles.',
+          confirmButtonColor: '#3085d6',
+        });
       }
     } catch (err) {
-      console.error(err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de carga',
+        text: 'No se pudieron obtener los Roles.',
+        confirmButtonColor: '#3085d6',
+      });
     }
   }
 

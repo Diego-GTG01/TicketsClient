@@ -84,7 +84,12 @@ export class VistaCrearTickets implements OnInit {
         }
       },
       error: (err) => {
-        console.error(err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de carga',  
+        text: 'No se pudieron obtener las prioridades.',
+          confirmButtonColor: '#3085d6',
+        });
       },
     });
   }
@@ -147,7 +152,6 @@ export class VistaCrearTickets implements OnInit {
         });
       },
       error: (err) => {
-        console.error(err);
 
         if (err.status === 403) {
           Swal.fire({

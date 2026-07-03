@@ -102,7 +102,6 @@ export class VistaTickets implements OnInit, OnDestroy {
         }
       },
       error: (err) => {
-        console.warn('Error al cargar tickets:', err);
         if (err.status === 403) {
           Swal.fire({
             icon: 'error',
@@ -143,7 +142,6 @@ export class VistaTickets implements OnInit, OnDestroy {
       .subscribe({
         next: (result) => (this.agentesDisponibles = result.objects || []),
         error: (err) => {
-          console.error('Error al cargar agentes:', err);
           if (err.status === 403) {
             Swal.fire({
               icon: 'error',
@@ -221,7 +219,6 @@ export class VistaTickets implements OnInit, OnDestroy {
             }
           },
           error: (err) => {
-            console.error(err);
             const msg =
               err.message === 'STATUS_ERROR'
                 ? 'No se pudo cambiar el estado del ticket.'
@@ -259,7 +256,6 @@ export class VistaTickets implements OnInit, OnDestroy {
             }
           },
           error: (err) => {
-            console.warn(err);
             Swal.fire('Error', 'Ocurrió un error inesperado en el servidor.', 'error');
           },
         });
@@ -272,7 +268,7 @@ export class VistaTickets implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => (this.estados = res.correct ? res.objects.flat() : []),
-        error: (err) => console.error(err),
+        error: (err) => Swal.fire('Error', 'No se pudieron obtener los estados.', 'error'),
       });
 
     this.prioridadService
@@ -280,18 +276,12 @@ export class VistaTickets implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => (this.prioridades = res.correct ? res.objects.flat() : []),
-        error: (err) => console.error(err),
+        error: (err) => Swal.fire('Error', 'No se pudieron obtener las prioridades.', 'error'),
       });
   }
 
   aplicarFiltros(): void {
-    console.log(
-      this.estadoFiltro,
-      this.prioridadFiltro,
-      this.idFiltro,
-      this.usuarioFiltro,
-      this.agenteFiltro,
-    );
+    
 
     const baseTickets = this.tickets.filter((ticket) => ticket.status === this.tabActiva);
 
