@@ -104,13 +104,24 @@ export class VistaUsuarios implements OnInit, OnDestroy {
           }
         },
         error: (err) => {
+          if (err.status === 403) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Sesión expirada',
+              text: 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.',
+              confirmButtonColor: '#3085d6',
+            }).then(() => {
+              this.authService.logout();
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error de conexión',
+              text: 'No se pudo conectar con el servidor.',
+              confirmButtonColor: '#3085d6',
+            });
+          }
           console.error('Error al cargar usuarios:', err);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error de conexión',
-            text: 'No se pudo conectar con el servidor.',
-            confirmButtonColor: '#3085d6',
-          });
         },
       });
   }
@@ -120,14 +131,9 @@ export class VistaUsuarios implements OnInit, OnDestroy {
   }
 
   async editarUsuario(isAdmin: boolean, user: any): Promise<void> {
-
-     if (user.idUsuario === this.idUsuario) {
-       isAdmin = false;
-     }
-      
-
-    
-
+    if (user.idUsuario === this.idUsuario) {
+      isAdmin = false;
+    }
     const idRolOriginal = user.rol?.idRol || 0;
 
     await this.cargarRoles();
@@ -135,14 +141,14 @@ export class VistaUsuarios implements OnInit, OnDestroy {
     Swal.fire({
       title: 'Editar Usuario',
       customClass: {
-        popup: 'shadow-lg rounded-4 p-4', 
+        popup: 'shadow-lg rounded-4 p-4',
         title: 'fw-bold text-secondary fs-4 border-bottom pb-2 text-start w-100',
         actions: 'w-100 justify-content-end gap-2 border-top pt-3 mt-4',
         confirmButton: 'btn btn-primary fw-semibold px-4 py-2 order-2',
-        cancelButton: 'btn btn-outline-secondary fw-semibold px-4 py-2 order-1'
+        cancelButton: 'btn btn-outline-secondary fw-semibold px-4 py-2 order-1',
       },
-      buttonsStyling: false, 
-      width: 'auto', 
+      buttonsStyling: false,
+      width: 'auto',
 
       html: `
       <div class="row g-3 text-start px-1" style="max-width: 720px;">

@@ -20,4 +20,8 @@ export class TokenService {
   addToken(token: VerificacionToken): Observable<Result<VerificacionToken>> {
     return this.http.post<Result<VerificacionToken>>(this.apiUrl + '?token=', token);
   }
+
+  verifyTokenRecovery(token: VerificacionToken): Observable<Result<VerificacionToken>>{
+    return this.http.post<Result<VerificacionToken>>(this.apiUrl+'/recovery', token);
+  }
 }

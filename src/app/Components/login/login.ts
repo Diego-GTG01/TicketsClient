@@ -9,6 +9,8 @@ import { UserService } from '../../Services/user-service';
 import { Rol } from '../../Interfaces/rol';
 
 import Swal from 'sweetalert2';
+import { TokenService } from '../../Services/token-service';
+import { VerificacionToken } from '../../Interfaces/verificacion-token';
 
 @Component({
   selector: 'app-login',
@@ -25,12 +27,23 @@ export class Login implements OnInit {
 
   error = '';
   roles: Rol[] = [];
+  token: any = {
+    idToken: 0,
+    token: '',
+    usuarioToken: {
+      idUsuario: 0,
+      username: '',
+    },
+    fechaExpiracion: undefined,
+    tipo: 1,
+  };
 
   constructor(
     private router: Router,
     private authService: AuthService,
     private usuarioService: UserService,
     private rolService: RolService,
+    private tokenService: TokenService,
   ) {}
 
   ngOnInit(): void {
@@ -95,13 +108,83 @@ export class Login implements OnInit {
         console.error('Error completo del login:', err);
         this.error = err.error?.message || err.message || 'No hay respuesta del servidor.';
 
-        Swal.fire({
-          icon: 'error',
-          title: 'Error de conexión',
-          text: this.error,
-          confirmButtonColor: '#d33',
-        });
+        if (err.status === 403) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Usuario no habilitado',
+            text: this.error + '\n Revise su correo registrado en el sistema',
+            confirmButtonColor: '#d33',
+          });
+        }
+        if (err.status === 400) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Datos incorrectos',
+            text: this.error + '\n Por favor, verifica los datos ingresados.',
+            confirmButtonColor: '#d33',
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Algo Salió mal',
+            text: this.error + '\n Algo salió mal, por favor intente nuevamente.',
+            confirmButtonColor: '#d33',
+          });
+        }
       },
+    });
+  }
+
+  recuperarContrasena(): void {
+    Swal.fire({
+      title: 'Recuperar contraseña',
+      text: 'Ingresa tu nombre de usuario para solicitar el restablecimiento:',
+      input: 'text',
+      inputAttributes: {
+        autocapitalize: 'off',
+        placeholder: 'Tu nombre de usuario',
+      },
+      showCancelButton: true,
+      confirmButtonText: 'Enviar solicitud',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      showLoaderOnConfirm: true,
+      preConfirm: (username) => {
+        if (!username || username.trim() === '') {
+          Swal.showValidationMessage('El nombre de usuario es obligatorio');
+          return false;
+        }
+        return username.trim();
+      },
+      allowOutsideClick: () => !Swal.isLoading(),
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        const usernameIngresado = result.value;
+        this.token.usuarioToken.username = usernameIngresado;
+        this.token.tipo = 1;
+        console.log(this.token)
+        this.tokenService.addToken(this.token).subscribe({
+          next: (result)=>{
+            if(result.correct){
+              console.log('Solicitud de recuperación enviada correctamente:', result);
+            }else{
+              console.error('Error en la solicitud de recuperación:', result.message);
+            }
+          },
+          error: (err) =>{
+            console.error('Error al enviar solicitud de recuperación:', err);
+          }
+
+        });
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Solicitud enviada',
+          text: `Se ha notificado al administrador para restablecer la cuenta de: ${usernameIngresado}.`,
+          confirmButtonColor: '#3085d6',
+        });
+      }
     });
   }
 

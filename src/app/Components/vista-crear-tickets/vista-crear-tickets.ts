@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core'; 
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Prioridad } from '../../Interfaces/prioridad';
@@ -79,7 +79,7 @@ export class VistaCrearTickets implements OnInit {
             icon: 'error',
             title: 'Error de carga',
             text: 'No se pudieron obtener las prioridades.',
-            confirmButtonColor: '#3085d6'
+            confirmButtonColor: '#3085d6',
           });
         }
       },
@@ -97,7 +97,7 @@ export class VistaCrearTickets implements OnInit {
         icon: 'warning',
         title: 'Campos requeridos',
         text: 'Por favor complete todos los campos del formulario.',
-        confirmButtonColor: '#3085d6'
+        confirmButtonColor: '#3085d6',
       });
 
       return;
@@ -148,13 +148,24 @@ export class VistaCrearTickets implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        
-        Swal.fire({
-          icon: 'error',
-          title: 'Error al crear',
-          text: err.error?.message || 'No fue posible guardar el ticket en este momento.',
-          confirmButtonColor: '#d33'
-        });
+
+        if (err.status === 403) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Sesión expirada',
+            text: 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.',
+            confirmButtonColor: '#3085d6',
+          }).then(() => {
+            this.authService.logout();
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error al crear',
+            text: err.error?.message || 'No fue posible guardar el ticket en este momento.',
+            confirmButtonColor: '#d33',
+          });
+        }
       },
     });
   }

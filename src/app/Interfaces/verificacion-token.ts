@@ -5,4 +5,5 @@ export interface VerificacionToken {
   token: string;
   usuarioToken: Usuario;
   fechaExpiracion: Date;
+  tipo: number;
 }

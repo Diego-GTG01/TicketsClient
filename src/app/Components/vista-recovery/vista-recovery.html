@@ -1,0 +1,49 @@
+<div class="container vh-100 d-flex justify-content-center align-items-center">
+  <div class="card shadow p-4" style="width: 430px">
+    <h3 class="text-center mb-4">Recuperar contraseña</h3>
+    @if (cargando) {
+      <div class="text-center">
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-3">Verificando enlace...</p>
+      </div>
+    } @else if (!tokenValido) {
+      <div class="alert alert-danger text-center">
+        {{ mensaje }}
+      </div>
+    } @else {
+      <form (ngSubmit)="cambiarPassword()">
+        <div class="mb-3">
+          <label class="form-label"> Nueva contraseña </label>
+          <input
+            type="password"
+            class="form-control"
+            [(ngModel)]="password"
+            name="password"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label"> Confirmar contraseña </label>
+          <input
+            type="password"
+            class="form-control"
+            [(ngModel)]="confirmPassword"
+            name="confirmPassword"
+            required
+          />
+        </div>
+        @if (password != confirmPassword && confirmPassword.length > 0) {
+          <div class="alert alert-warning">Las contraseñas no coinciden.</div>
+        }
+        
+
+        <button
+          class="btn btn-primary w-100"
+          [disabled]="password != confirmPassword || password.length == 0"
+        >
+          Cambiar contraseña
+        </button>
+      </form>
+    }
+  </div>
+</div>

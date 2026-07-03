@@ -61,7 +61,6 @@ export class VistaTickets implements OnInit, OnDestroy {
     this.idUsuario = Number(this.authService.getIdUsuario());
     this.username = this.authService.getUsername();
 
-
     this.usuarioSesion = { nombre: this.username, rol: this.miRol };
 
     this.cargarTickets();
@@ -87,16 +86,38 @@ export class VistaTickets implements OnInit, OnDestroy {
 
     request$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (result) => {
-        this.tickets = result.objects || [];
-        this.tickets.sort((a, b) => a.idTicket - b.idTicket);
+        if (result.correct) {
+          this.tickets = result.objects || [];
+          this.tickets.sort((a, b) => a.idTicket - b.idTicket);
 
-        if (this.miRol === 'Administrador') {
-          this.actualizarTicketsPorTab();
-        } else {
-          this.ticketsFiltrados = [...this.tickets];
+          if (this.miRol === 'Administrador') {
+            this.actualizarTicketsPorTab();
+          } else {
+            this.ticketsFiltrados = [...this.tickets];
+          }
         }
       },
-      error: (err) => console.warn('Error al cargar tickets:', err),
+      error: (err) => {
+        console.warn('Error al cargar tickets:', err);
+        if (err.status === 403) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Sesión expirada',
+            text: 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.',
+            confirmButtonColor: '#3085d6',
+          }).then(() => {
+            this.authService.logout();
+          });
+        }
+        if (err.status !== 400 && err.status !== 404) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error de conexión',
+            text: 'No se pudo conectar con el servidor.',
+            confirmButtonColor: '#3085d6',
+          });
+        }
+      },
     });
   }
 
@@ -117,7 +138,26 @@ export class VistaTickets implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (result) => (this.agentesDisponibles = result.objects || []),
-        error: (err) => console.error('Error al cargar agentes:', err),
+        error: (err) => {
+          console.error('Error al cargar agentes:', err);
+          if (err.status === 403) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Sesión expirada',
+              text: 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.',
+              confirmButtonColor: '#3085d6',
+            }).then(() => {
+              this.authService.logout();
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error de conexión',
+              text: 'No se pudo conectar con el servidor.',
+              confirmButtonColor: '#3085d6',
+            });
+          }
+        },
       });
   }
 
@@ -270,8 +310,7 @@ export class VistaTickets implements OnInit, OnDestroy {
       Swal.fire('Oops', 'El Ticket seleccionado aún no ha sido aprobado', 'error');
     } else if (ticket.status === 3) {
       Swal.fire('Oops', 'El Ticket seleccionado fue descartado', 'error');
-    } 
-    else {
+    } else {
       localStorage.setItem('ticket', JSON.stringify(ticket));
       this.router.navigate(['/detail']);
     }

@@ -136,11 +136,41 @@ export class VistaDetalleTicket implements OnInit {
   cargarDatosTicket(): void {
     this.ticketService.getById(this.ticket.idTicket).subscribe({
       next: (result) => {
-        this.ticket = result.object;
-        this.cargarComentarios();
-        this.cargarHistorial();
+        if (result.correct) {
+          this.ticket = result.object;
+          this.cargarComentarios();
+          this.cargarHistorial();
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error al cargar ticket',
+            text: 'No se pudo cargar el ticket.',
+            confirmButtonColor: '#3085d6',
+          }).then( (()=>{
+            this.router.navigate(['/tickets']);
+          }))
+        }
       },
-      error: (err) => console.error('Error al cargar ticket:', err),
+      error: (err) => {
+        console.error('Error al cargar ticket:', err);
+        if (err.status === 403) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Sesión expirada',
+            text: 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.',
+            confirmButtonColor: '#3085d6',
+          }).then(() => {
+            this.authService.logout();
+          });
+        } else if (err.status === 404) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Ticket no encontrado',
+            text: 'El ticket que está buscando no existe.',
+            confirmButtonColor: '#3085d6',
+          });
+        }
+      },
     });
   }
 
