@@ -2,7 +2,7 @@
   <aside class="sidebar">
     <app-user-badge-component [usuario]="usuarioSesion"></app-user-badge-component>
   </aside>
-  
+
   <div class="d-flex flex-column gap-3 mb-4 pb-2 border-bottom">
     <div class="d-flex justify-content-between align-items-center">
       <h2 class="fw-bold text-secondary mb-0 fs-3 fs-md-2">
@@ -30,12 +30,13 @@
   </div>
 
   @if (usuarios.length === 0) {
-    <div class="text-center text-muted py-5 my-4 bg-white rounded border border-dashed shadow-sm px-3">
+    <div
+      class="text-center text-muted py-5 my-4 bg-white rounded border border-dashed shadow-sm px-3"
+    >
       <i class="bi bi-people me-2 fs-1 d-block mb-3 text-secondary opacity-50"></i>
       <p class="mb-0 fw-medium">No se encontraron usuarios registrados en el sistema.</p>
     </div>
   } @else {
-    
     <div class="d-block d-md-none">
       @for (user of usuarios; track user.idUsuario) {
         <div class="card mb-3 shadow-sm border rounded bg-white">
@@ -47,10 +48,12 @@
                 </span>
                 <div class="text-muted small mt-1">ID: #{{ user.idUsuario }}</div>
               </div>
-              
+
               <div class="d-flex flex-column align-items-end gap-1.5">
                 @if (user.activo === 1) {
-                  <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1">
+                  <span
+                    class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1"
+                  >
                     <i class="bi bi-check-circle-fill me-1"></i> Activo
                   </span>
                 } @else {
@@ -58,15 +61,17 @@
                     <i class="bi bi-x-circle-fill me-1"></i> Inactivo
                   </span>
                 }
-                
+
                 @let nombreRol = user.rol?.nombre?.toLowerCase();
                 <span
                   class="badge border px-2 py-1 small mt-1"
                   [ngClass]="{
-                    'bg-danger-subtle text-danger border-danger-subtle': nombreRol === 'administrador',
+                    'bg-danger-subtle text-danger border-danger-subtle':
+                      nombreRol === 'administrador',
                     'bg-primary-subtle text-primary border-primary-subtle': nombreRol === 'agente',
                     'bg-success-subtle text-success border-success-subtle': nombreRol === 'usuario',
-                    'bg-secondary-subtle text-secondary': !nombreRol || !['administrador', 'agente', 'usuario'].includes(nombreRol)
+                    'bg-secondary-subtle text-secondary':
+                      !nombreRol || !['administrador', 'agente', 'usuario'].includes(nombreRol),
                   }"
                 >
                   {{ user.rol?.nombre || 'Sin Rol' }}
@@ -94,6 +99,13 @@
               >
                 <i class="bi bi-pencil-square me-1"></i> Editar
               </button>
+
+              <button
+                class="btn btn-info btn-sm flex-grow-1 fw-semibold py-2"
+                (click)="verDetalle(user)"
+              >
+                <i class="bi bi-eye me-1"></i> Ver
+              </button>
             </div>
           </div>
         </div>
@@ -120,10 +132,10 @@
                   <i class="bi bi-person me-1"></i>{{ user.username }}
                 </span>
               </td>
-              <td class="text-start ps-4 text-truncate" style="max-width: 250px;">
+              <td class="text-start ps-4 text-truncate" style="max-width: 250px">
                 {{ user.nombre }} {{ user.apellidoPaterno }} {{ user.apellidoMaterno }}
               </td>
-              <td class="d-none d-lg-table-cell text-truncate" style="max-width: 220px;">
+              <td class="d-none d-lg-table-cell text-truncate" style="max-width: 220px">
                 <small class="text-muted">{{ user.email }}</small>
               </td>
               <td>
@@ -131,10 +143,12 @@
                 <span
                   class="badge border px-3 py-2"
                   [ngClass]="{
-                    'bg-danger-subtle text-danger border-danger-subtle': nombreRol === 'administrador',
+                    'bg-danger-subtle text-danger border-danger-subtle':
+                      nombreRol === 'administrador',
                     'bg-primary-subtle text-primary border-primary-subtle': nombreRol === 'agente',
                     'bg-success-subtle text-success border-success-subtle': nombreRol === 'usuario',
-                    'bg-secondary-subtle text-secondary': !nombreRol || !['administrador', 'agente', 'usuario'].includes(nombreRol)
+                    'bg-secondary-subtle text-secondary':
+                      !nombreRol || !['administrador', 'agente', 'usuario'].includes(nombreRol),
                   }"
                 >
                   {{ user.rol?.nombre || 'Sin Rol' }}
@@ -142,7 +156,9 @@
               </td>
               <td>
                 @if (user.activo === 1) {
-                  <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1.5">
+                  <span
+                    class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1.5"
+                  >
                     <i class="bi bi-check-circle-fill me-1"></i> Activo
                   </span>
                 } @else {
@@ -166,6 +182,14 @@
                     title="Editar usuario"
                   >
                     <i class="bi bi-pencil-square"></i>
+                  </button>
+
+                  <button
+                    class="btn btn-info btn-sm px-2.5"
+                    (click)="verDetalle(user)"
+                    title="Ver detalle"
+                  >
+                    <i class="bi bi-eye-fill text-light"></i>
                   </button>
                 </div>
               </td>

@@ -7,10 +7,10 @@ import { AuthService } from '../../Services/auth-service';
 import { RolService } from '../../Services/rol-service';
 import { UserService } from '../../Services/user-service';
 import { Rol } from '../../Interfaces/rol';
+import { TokenService } from '../../Services/token-service';
 
 import Swal from 'sweetalert2';
-import { TokenService } from '../../Services/token-service';
-import { VerificacionToken } from '../../Interfaces/verificacion-token';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -112,22 +112,21 @@ export class Login implements OnInit {
           Swal.fire({
             icon: 'error',
             title: 'Usuario no habilitado',
-            text: this.error + '\n Revise su correo registrado en el sistema',
+            text: `${this.error}\nRevise su correo registrado en el sistema.`,
             confirmButtonColor: '#d33',
           });
-        }
-        if (err.status === 400) {
+        } else if (err.status === 400) {
           Swal.fire({
             icon: 'error',
             title: 'Datos incorrectos',
-            text: this.error + '\n Por favor, verifica los datos ingresados.',
+            text: `${this.error}\nPor favor, verifica los datos ingresados.`,
             confirmButtonColor: '#d33',
           });
         } else {
           Swal.fire({
             icon: 'error',
-            title: 'Algo Salió mal',
-            text: this.error + '\n Algo salió mal, por favor intente nuevamente.',
+            title: 'Algo salió mal',
+            text: `${this.error}\nPor favor intente nuevamente.`,
             confirmButtonColor: '#d33',
           });
         }
@@ -150,41 +149,38 @@ export class Login implements OnInit {
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
       showLoaderOnConfirm: true,
-      preConfirm: (username) => {
+      preConfirm: async (username) => {
         if (!username || username.trim() === '') {
           Swal.showValidationMessage('El nombre de usuario es obligatorio');
           return false;
         }
-        return username.trim();
+
+        this.token.usuarioToken.username = username.trim();
+        this.token.tipo = 1;
+
+        try {
+          const result = await firstValueFrom(this.tokenService.addToken(this.token));
+          
+          if (!result.correct) {
+            Swal.showValidationMessage(`Error: ${result.message || 'No se pudo procesar'}`);
+            return false;
+          }
+          return username.trim(); 
+        } catch (err: any) {
+          Swal.showValidationMessage(`Error de red: ${err.message || 'Intente más tarde'}`);
+          return false;
+        }
       },
       allowOutsideClick: () => !Swal.isLoading(),
     }).then((result) => {
       if (result.isConfirmed && result.value) {
-        const usernameIngresado = result.value;
-        this.token.usuarioToken.username = usernameIngresado;
-        this.token.tipo = 1;
-        console.log(this.token)
-        this.tokenService.addToken(this.token).subscribe({
-          next: (result)=>{
-            if(result.correct){
-              console.log('Solicitud de recuperación enviada correctamente:', result);
-            }else{
-              console.error('Error en la solicitud de recuperación:', result.message);
-            }
-          },
-          error: (err) =>{
-            console.error('Error al enviar solicitud de recuperación:', err);
-          }
-
-        });
-
         Swal.fire({
           icon: 'success',
-          title: 'Solicitud enviada',
-          text: `Se ha notificado al administrador para restablecer la cuenta de: ${usernameIngresado}.`,
+          title: 'Correo de Recuperación Enviado',
+          text: `Se ha enviado un correo para restablecer la cuenta de: ${result.value}.`,
           confirmButtonColor: '#3085d6',
         });
-      }
+      } 
     });
   }
 

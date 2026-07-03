@@ -33,6 +33,10 @@ export class VistaTickets implements OnInit, OnDestroy {
 
   estadoFiltro = '';
   prioridadFiltro = '';
+  busquedaFiltro = '';
+  usuarioFiltro = '';
+  agenteFiltro = '';
+  idFiltro = '';
   miRol: string | null = null;
   idUsuario: number | null = null;
   tabActiva = 1;
@@ -281,34 +285,57 @@ export class VistaTickets implements OnInit, OnDestroy {
   }
 
   aplicarFiltros(): void {
-    const baseTickets =
-      this.miRol === 'Administrador'
-        ? this.tickets.filter((t) => t.estado?.nombre === 'Aceptado')
-        : this.tickets;
+    console.log(
+      this.estadoFiltro,
+      this.prioridadFiltro,
+      this.idFiltro,
+      this.usuarioFiltro,
+      this.agenteFiltro,
+    );
+
+    const baseTickets = this.tickets.filter((ticket) => ticket.status === this.tabActiva);
 
     this.ticketsFiltrados = baseTickets.filter((ticket) => {
       const coincideEstado = !this.estadoFiltro || ticket.estado?.nombre === this.estadoFiltro;
+
       const coincidePrioridad =
         !this.prioridadFiltro || ticket.prioridad?.nombre === this.prioridadFiltro;
-      return coincideEstado && coincidePrioridad;
+
+      const coincideId =
+        !this.idFiltro ||
+        ticket.idTicket?.toString().toLowerCase().includes(this.idFiltro.trim().toLowerCase());
+
+      const coincideUsuario =
+        !this.usuarioFiltro ||
+        ticket.usuarioSolicitante?.username
+          ?.toLowerCase()
+          .includes(this.usuarioFiltro.toLowerCase().trim());
+
+      const coincideAgente =
+        !this.agenteFiltro ||
+        ticket.agenteAsignado?.username
+          ?.toLowerCase()
+          .includes(this.agenteFiltro.toLowerCase().trim());
+
+      return coincideEstado && coincidePrioridad && coincideId && coincideUsuario && coincideAgente;
     });
   }
 
   limpiarFiltros(): void {
     this.estadoFiltro = '';
     this.prioridadFiltro = '';
+    this.busquedaFiltro = '';
+    this.usuarioFiltro = '';
+    this.agenteFiltro = '';
+    this.idFiltro = '';
 
-    if (this.miRol === 'Administrador') {
-      this.actualizarTicketsPorTab();
-    } else {
-      this.ticketsFiltrados = [...this.tickets];
-    }
+    this.aplicarFiltros();
   }
 
   verDetalle(ticket: Ticket): void {
-    if (ticket.status === 1) {
+    if (this.miRol !== 'Administrador' && ticket.status === 1) {
       Swal.fire('Oops', 'El Ticket seleccionado aún no ha sido aprobado', 'error');
-    } else if (ticket.status === 3) {
+    } else if (this.miRol !== 'Administrador' && ticket.status === 3) {
       Swal.fire('Oops', 'El Ticket seleccionado fue descartado', 'error');
     } else {
       localStorage.setItem('ticket', JSON.stringify(ticket));

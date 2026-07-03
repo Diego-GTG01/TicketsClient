@@ -446,4 +446,8 @@ export class VistaUsuarios implements OnInit, OnDestroy {
   volver() {
     this.router.navigate(['/tickets']);
   }
+  verDetalle(user: Usuario) {
+    localStorage.setItem('usuario', JSON.stringify(user));
+    this.router.navigate(['/detalle-usuario']);
+  }
 }
