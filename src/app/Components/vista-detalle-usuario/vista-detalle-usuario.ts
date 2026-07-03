@@ -1,11 +1,314 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { Usuario } from '../../Interfaces/usuario';
+import { Router } from '@angular/router';
+import { UserBadgeComponent } from '../user-badge-component/user-badge-component';
+import { AuthService } from '../../Services/auth-service';
+import { CommonModule } from '@angular/common';
+import Swal from 'sweetalert2';
+import { firstValueFrom, Subject, takeUntil } from 'rxjs';
+import { UserService } from '../../Services/user-service';
+import { RolService } from '../../Services/rol-service';
+import { Rol } from '../../Interfaces/rol';
 
 @Component({
   selector: 'app-vista-detalle-usuario',
-  imports: [],
+  imports: [CommonModule, UserBadgeComponent],
+  standalone: true,
   templateUrl: './vista-detalle-usuario.html',
-  styleUrl: './vista-detalle-usuario.css',
+  styleUrls: ['./vista-detalle-usuario.css'],
 })
-export class VistaDetalleUsuario {
+export class VistaDetalleUsuario implements OnInit {
+  usuario: Usuario | null = null;
 
+  miRol: string | null = null;
+  token: string | null = null;
+  username: string | null = null;
+  idUsuario: number | null = null;
+  usuarioSesion: any;
+
+  roles: Rol[] = [];
+
+  private destroy$ = new Subject<void>();
+
+  constructor(
+    private usuarioService: UserService,
+    private rolService: RolService,
+    private authService: AuthService,
+    private router: Router,
+  ) {}
+  ngOnInit(): void {
+    const usuarioData = localStorage.getItem('usuario');
+    if (usuarioData) {
+      this.usuario = JSON.parse(usuarioData);
+    } else {
+      this.usuario = null;
+    }
+    if (!this.authService.isAuthenticated()) {
+      this.authService.logout();
+      return;
+    }
+    this.miRol = this.authService.getUserRol();
+    this.token = this.authService.getToken();
+    this.username = this.authService.getUsername();
+    this.idUsuario = Number(this.authService.getIdUsuario());
+    this.usuarioSesion = { nombre: this.username, rol: this.miRol };
+    console.error('No user data found in localStorage.');
+  }
+
+  async editarUsuario(isAdmin: boolean, user: any): Promise<void> {
+    if (user.idUsuario === this.idUsuario) {
+      isAdmin = false;
+    }
+    const idRolOriginal = user.rol?.idRol || 0;
+
+    await this.cargarRoles();
+    Swal.fire({
+      title: 'Editar Usuario',
+      customClass: {
+        popup: 'shadow-lg rounded-4 p-4',
+        title: 'fw-bold text-secondary fs-4 border-bottom pb-2 text-start w-100',
+        actions: 'w-100 justify-content-end gap-2 border-top pt-3 mt-4',
+        confirmButton: 'btn btn-primary fw-semibold px-4 py-2 order-2',
+        cancelButton: 'btn btn-outline-secondary fw-semibold px-4 py-2 order-1',
+      },
+      buttonsStyling: false,
+      width: 'auto',
+
+      html: `
+        <div class="row g-3 text-start px-1" style="max-width: 720px;">
+          
+          <div class="col-sm-6">
+            <label class="form-label fw-semibold small text-muted mb-1">Nombre *</label>
+            <input id="nombre" class="form-control shadow-sm" value="${user.nombre || ''}">
+            <div id="errorNombre" class="invalid-feedback d-block mt-1 small"></div>
+          </div>
+  
+          <div class="col-sm-6">
+            <label class="form-label fw-semibold small text-muted mb-1">Apellido Paterno *</label>
+            <input id="apellidoPaterno" class="form-control shadow-sm" value="${user.apellidoPaterno || ''}">
+            <div id="errorApellidoPaterno" class="invalid-feedback d-block mt-1 small"></div>
+          </div>
+  
+          <div class="col-sm-6">
+            <label class="form-label fw-semibold small text-muted mb-1">Apellido Materno</label>
+            <input id="apellidoMaterno" class="form-control shadow-sm" value="${user.apellidoMaterno || ''}">
+          </div>
+  
+         
+          
+          <div class="col-sm-6">
+            <label class="form-label fw-semibold small text-muted mb-1">Teléfono *</label>
+            <input id="telefono" class="form-control shadow-sm" value="${user.telefono || ''}">
+            <div id="errorTelefono" class="invalid-feedback d-block mt-1 small"></div>
+          </div>
+  
+          <div class="col-sm-6">
+            <label class="form-label fw-semibold small text-muted mb-1">Celular *</label>
+            <input id="celular" class="form-control shadow-sm" value="${user.celular || ''}">
+            <div id="errorCelular" class="invalid-feedback d-block mt-1 small"></div>
+          </div>
+          
+          ${
+            isAdmin
+              ? `
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold small text-muted mb-1">Rol *</label>
+              <select id="rol" class="form-select shadow-sm">
+                <option value="">Seleccione...</option>
+                ${this.roles
+                  .map(
+                    (r) => `
+                  <option value="${r.idRol}" ${r.idRol === idRolOriginal ? 'selected' : ''}>
+                    ${r.nombre}
+                  </option>
+                `,
+                  )
+                  .join('')}
+              </select>
+              <div id="errorRol" class="invalid-feedback d-block mt-1 small"></div>
+            </div>
+          `
+              : ''
+          }
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Actualizar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#0d6efd',
+      cancelButtonColor: '#6c757d',
+      reverseButtons: true,
+
+      preConfirm: () => {
+        const limpiarError = (campo: string, error: string) => {
+          const input = document.getElementById(campo);
+          const mensaje = document.getElementById(error);
+          input?.classList.remove('is-invalid');
+          if (mensaje) mensaje.textContent = '';
+        };
+
+        const mostrarError = (campo: string, error: string, mensaje: string) => {
+          const input = document.getElementById(campo);
+          const errorElement = document.getElementById(error);
+          input?.classList.add('is-invalid');
+          if (errorElement) errorElement.textContent = mensaje;
+        };
+
+        limpiarError('nombre', 'errorNombre');
+        limpiarError('apellidoPaterno', 'errorApellidoPaterno');
+        limpiarError('username', 'errorUsername');
+        limpiarError('email', 'errorEmail');
+        limpiarError('telefono', 'errorTelefono');
+        limpiarError('celular', 'errorCelular');
+        if (isAdmin) limpiarError('rol', 'errorRol');
+
+        const rolElement = document.getElementById('rol') as HTMLSelectElement;
+        const rolValue = rolElement ? rolElement.value : '';
+
+        const usuarioEditado = {
+          idUsuario: user.idUsuario,
+          nombre: (document.getElementById('nombre') as HTMLInputElement).value.trim(),
+          apellidoPaterno: (
+            document.getElementById('apellidoPaterno') as HTMLInputElement
+          ).value.trim(),
+          apellidoMaterno: (
+            document.getElementById('apellidoMaterno') as HTMLInputElement
+          ).value.trim(),
+          username: (user.username || '').trim(),
+          email: (user.email || '').trim(),
+          telefono: (document.getElementById('telefono') as HTMLInputElement).value.trim(),
+          celular: (document.getElementById('celular') as HTMLInputElement).value.trim(),
+          rol: {
+            idRol: isAdmin ? (rolValue ? Number(rolValue) : 0) : idRolOriginal,
+          },
+          activo: user.activo,
+        };
+
+        let valido = true;
+
+        if (!usuarioEditado.nombre) {
+          mostrarError('nombre', 'errorNombre', 'El nombre es obligatorio');
+          valido = false;
+        }
+
+        if (!usuarioEditado.apellidoPaterno) {
+          mostrarError(
+            'apellidoPaterno',
+            'errorApellidoPaterno',
+            'El apellido paterno es obligatorio',
+          );
+          valido = false;
+        }
+
+        if (!usuarioEditado.username) {
+          mostrarError('username', 'errorUsername', 'El usuario es obligatorio');
+          valido = false;
+        }
+
+        if (!usuarioEditado.telefono) {
+          mostrarError('telefono', 'errorTelefono', 'El teléfono es obligatorio');
+          valido = false;
+        }
+
+        if (!usuarioEditado.celular) {
+          mostrarError('celular', 'errorCelular', 'El celular es obligatorio');
+          valido = false;
+        }
+
+        if (!usuarioEditado.email) {
+          mostrarError('email', 'errorEmail', 'El correo es obligatorio');
+          valido = false;
+        } else {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(usuarioEditado.email)) {
+            mostrarError('email', 'errorEmail', 'Ingrese un correo válido');
+            valido = false;
+          }
+        }
+
+        if (isAdmin && usuarioEditado.rol.idRol <= 0) {
+          mostrarError('rol', 'errorRol', 'Debe seleccionar un rol');
+          valido = false;
+        }
+
+        return valido ? usuarioEditado : false;
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: 'Guardando cambios',
+          text: 'Por favor, espere...',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          didOpen: () => Swal.showLoading(),
+        });
+
+        this.usuarioService
+          .updateUser(result.value)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: (res) => {
+              if (res.correct) {
+                console.log('Usuario actualizado:', res.object);
+
+                this.usuario = res.object;
+                this.usuario.rol = this.roles.find((r) => r.idRol === res.object.rol?.idRol);
+                localStorage.removeItem('usuario');
+                localStorage.setItem('usuario', JSON.stringify(user));
+                Swal.fire({
+                  icon: 'success',
+                  title: '¡Actualizado!',
+                  text: 'Los cambios se guardaron correctamente.',
+                  showConfirmButton: false,
+                  timer: 1500,
+                });
+              } else {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'No se pudieron guardar los cambios.',
+                  confirmButtonColor: '#d33',
+                });
+              }
+            },
+            error: (err) => {
+              if (err.status === 400) {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Username Invalido',
+                  text: 'El username ya está en uso.',
+                  confirmButtonColor: '#d33',
+                });
+              } else {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error de servidor',
+                  text: 'Ocurrió un problema interno en el sistema.',
+                  confirmButtonColor: '#d33',
+                });
+              }
+            },
+          });
+      }
+    });
+  }
+
+  async cargarRoles(): Promise<void> {
+    try {
+      const result = await firstValueFrom(this.rolService.getAll());
+
+      if (result.correct) {
+        this.roles = result.objects;
+        console.log(this.roles);
+      } else {
+        console.warn(result.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  volver() {
+    this.router.navigate(['/users']);
+  }
 }

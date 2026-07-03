@@ -137,7 +137,6 @@ export class VistaUsuarios implements OnInit, OnDestroy {
     const idRolOriginal = user.rol?.idRol || 0;
 
     await this.cargarRoles();
-
     Swal.fire({
       title: 'Editar Usuario',
       customClass: {
@@ -448,6 +447,6 @@ export class VistaUsuarios implements OnInit, OnDestroy {
   }
   verDetalle(user: Usuario) {
     localStorage.setItem('usuario', JSON.stringify(user));
-    this.router.navigate(['/detalle-usuario']);
+    this.router.navigate(['/user-detail']);
   }
 }

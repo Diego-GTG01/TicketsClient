@@ -1,1 +1,187 @@
-<p>vista-detalle-usuario works!</p>
+<div class="container my-4">
+  <div class="mb-3">
+    <app-user-badge-component [usuario]="usuarioSesion"></app-user-badge-component>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        @if (usuario === null) {
+          <div class="alert alert-warning text-center m-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>Usuario no encontrado.
+          </div>
+        } @else {
+          <div class="card-footer bg-light p-3 text-end border-top-0">
+            <button class="btn btn-white border shadow-sm px-4" (click)="volver()">
+              <i class="bi bi-arrow-left me-2"></i>Regresar
+            </button>
+          </div>
+          <div class="card-header bg-primary bg-gradient border-0 text-white p-4">
+            <div
+              class="d-flex flex-column flex-sm-row align-items-center text-center text-sm-start"
+            >
+              <div
+                class="rounded-circle bg-white bg-opacity-25 text-white fw-bold d-flex justify-content-center align-items-center mb-3 mb-sm-0 me-sm-4 shadow-sm"
+                style="width: 80px; height: 80px; min-width: 80px; font-size: 1.75rem"
+              >
+                {{ usuario.nombre?.charAt(0) }}{{ usuario.apellidoPaterno?.charAt(0) }}
+              </div>
+
+              <div class="flex-grow-1">
+                <div
+                  class="d-flex justify-content-between align-items-start flex-column flex-md-row"
+                >
+                  <div>
+                    <h3 class="mb-1 fw-semibold">
+                      {{ usuario.nombre }}
+                      {{ usuario.apellidoPaterno }}
+                      {{ usuario.apellidoMaterno }}
+                    </h3>
+
+                    <p class="mb-2 opacity-75">
+                      <i class="bi bi-envelope-fill me-2"></i>{{ usuario.email }}
+                    </p>
+
+                    @let nombreRol = usuario.rol?.nombre?.toLowerCase();
+                    <span
+                      class="badge rounded-pill px-3 py-2 fw-bold shadow-sm"
+                      [ngClass]="{
+                        'bg-danger': nombreRol === 'administrador',
+                        'bg-info text-light': nombreRol === 'agente',
+                        'bg-success': nombreRol === 'usuario',
+                        'bg-secondary':
+                          !nombreRol || !['administrador', 'agente', 'usuario'].includes(nombreRol),
+                      }"
+                    >
+                      {{ usuario.rol?.nombre }}
+                    </span>
+                  </div>
+
+                  <button
+                    class="btn btn-light shadow-sm px-4 col-12 col-sm-12 col-md-2 col-lg-auto mt-3 mt-md-0"
+                    (click)="editarUsuario(miRol === 'Administrador', usuario)"
+                  >
+                    <i class="bi bi-pencil-square me-2"></i>
+                    Editar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-body p-4 bg-light bg-opacity-50">
+            <div class="row g-4">
+              <div class="col-lg-6">
+                <div class="card h-100 border-0 shadow-sm">
+                  <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="card-title mb-0 text-secondary fw-semibold">
+                      <i class="bi bi-person-vcard me-2 text-primary"></i>Información Personal
+                    </h5>
+                  </div>
+
+                  <ul class="list-group list-group-flush">
+                    <li
+                      class="list-group-item d-flex justify-content-between align-items-center py-3"
+                    ></li>
+
+                    <li
+                      class="list-group-item d-flex justify-content-between align-items-center py-3"
+                    >
+                      <span class="text-muted"
+                        ><i class="bi bi-person me-2 text-primary opacity-75"></i>Usuario</span
+                      >
+                      <span class="fw-semibold text-dark">{{ usuario.username }}</span>
+                    </li>
+
+                    <li
+                      class="list-group-item d-flex justify-content-between align-items-center py-3"
+                    >
+                      <span class="text-muted"
+                        ><i class="bi bi-envelope me-2 text-primary opacity-75"></i>Correo</span
+                      >
+                      <span class="fw-semibold text-dark text-break ps-3 text-end">{{
+                        usuario.email
+                      }}</span>
+                    </li>
+
+                    <li
+                      class="list-group-item d-flex justify-content-between align-items-center py-3"
+                    >
+                      <span class="text-muted"
+                        ><i class="bi bi-telephone me-2 text-primary opacity-75"></i>Teléfono</span
+                      >
+                      <span class="fw-semibold" [class.text-muted]="!usuario.telefono">{{
+                        usuario.telefono || 'No registrado'
+                      }}</span>
+                    </li>
+
+                    <li
+                      class="list-group-item d-flex justify-content-between align-items-center py-3"
+                    >
+                      <span class="text-muted"
+                        ><i class="bi bi-phone me-2 text-primary opacity-75"></i>Celular</span
+                      >
+                      <span class="fw-semibold" [class.text-muted]="!usuario.celular">{{
+                        usuario.celular || 'No registrado'
+                      }}</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="col-lg-6">
+                <div class="card h-100 border-0 shadow-sm">
+                  <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="card-title mb-0 text-secondary fw-semibold">
+                      <i class="bi bi-shield-lock me-2 text-primary"></i>Información de la Cuenta
+                    </h5>
+                  </div>
+
+                  <ul class="list-group list-group-flush">
+                    <li
+                      class="list-group-item d-flex justify-content-between align-items-center py-3"
+                    >
+                      <span class="text-muted"
+                        ><i class="bi bi-person-badge me-2 text-light opacity-75"></i>Rol</span
+                      >
+                      <span class="fw-bold text-dark">{{ usuario.rol?.nombre }}</span>
+                    </li>
+
+                    <li class="list-group-item py-3">
+                      <div class="text-muted mb-2">
+                        <i class="bi bi-circle-square me-2 text-primary opacity-75"></i>Estado
+                      </div>
+                      @if (usuario.activo === 1) {
+                        <span
+                          class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 fs-6 rounded-pill"
+                        >
+                          <i class="bi bi-check-circle-fill me-1"></i>Activo
+                        </span>
+                      } @else {
+                        <span
+                          class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 fs-6 rounded-pill"
+                        >
+                          <i class="bi bi-x-circle-fill me-1"></i>Inactivo
+                        </span>
+                      }
+                    </li>
+
+                    <li class="list-group-item py-3">
+                      <div class="text-muted mb-2">
+                        <i class="bi bi-justify-left me-2 text-primary opacity-75"></i>Descripción
+                        del Rol
+                      </div>
+                      <p class="text-secondary mb-0 small lh-base">
+                        {{ usuario.rol?.descripcion || 'Sin descripción disponible.' }}
+                      </p>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
